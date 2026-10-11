@@ -53,6 +53,8 @@
   .bloc.classique { border-top-color: var(--bleu); }
   .bloc.poulies { border-top-color: var(--rouge); }
   .bloc.nu { border-top-color: var(--or); }
+  .bloc.droit { border-top-color: var(--argent); }
+  .bloc.autre { border-top-color: var(--bronze); }
   .bloc h3 { font-family: var(--titre); font-weight: 600; font-size: 2.3rem; margin: 0 0 .7rem; letter-spacing: .02em; }
   .ligne { display: grid; grid-template-columns: 3.6rem 1fr auto; align-items: center; gap: 1.2rem; padding: .55rem 0; border-top: 1px solid var(--trait); }
   .ligne:first-of-type { border-top: 0; }
@@ -179,7 +181,7 @@ const CFG = Object.assign({
   SHEET_EVENEMENTS_CSV: "", SHEET_INDISPOS_CSV: "", ORDRE: ["resultats", "indispos", "evenements"]
 }, window.CONFIG || {});
 
-const NOMS_ARC = { classique: "Arc classique", poulies: "Arc à poulies", nu: "Arc nu" };
+const NOMS_ARC = { classique: "Arc classique", poulies: "Arc à poulies", nu: "Arc nu", droit: "Arc droit", autre: "Autres catégories" };
 const scene = document.getElementById("scene");
 const points = document.getElementById("points");
 const barre = document.getElementById("barre");
@@ -309,7 +311,7 @@ function ecransRecap(titre, concours) {
 function ecransConcours(c) {
   const out = [];
   const toutes = c.groupes.flatMap(g => g.lignes.map(l => ({ nom: l[0], score: l[2], arc: g.arc })));
-  const meilleurs = ["poulies", "classique", "nu"].map(a => {
+  const meilleurs = ["poulies", "classique", "nu", "droit"].map(a => {
     const l = toutes.filter(x => x.arc === a).sort((x, y) => y.score - x.score)[0];
     return l ? { arc: NOMS_ARC[a], nom: l.nom, score: l.score } : null;
   }).filter(Boolean);
@@ -325,7 +327,7 @@ function ecransConcours(c) {
     </div>
     <div class="meilleurs">${meilleurs.map(m => `<div class="m"><i>${esc(m.arc)}</i><span>${formatNom(m.nom)}</span><em>${m.score}</em></div>`).join("")}</div>`,
     c.source, true));
-  [["classique"], ["poulies", "nu"]].forEach(arcs => {
+  [["classique"], ["poulies", "nu", "droit", "autre"]].forEach(arcs => {
     const blocs = c.groupes.filter(g => arcs.includes(g.arc));
     if (!blocs.length) return;
     const cols = arcs[0] === "classique" ? 2 : 3;
