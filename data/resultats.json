@@ -22,6 +22,171 @@
     }
    ],
    "id": "https://extranet.ffta.fr/pdfresultats/2026/S_1249047_20261010_77424.pdf"
+  },
+  {
+   "nom": "Week-End TIR en Campagne",
+   "format": "Tir en Campagne (12 CONNUES + 12 INCONNUES)",
+   "dates": "4 octobre 2026",
+   "fin": "2026-10-04",
+   "totalArchers": 65,
+   "source": "Source : classement officiel FFTA du 4 octobre 2026",
+   "groupes": [
+    {
+     "arc": "poulies",
+     "titre": "Senior 2 Femme",
+     "lignes": [
+      [
+       "Alexandra JOBERT",
+       1,
+       33
+      ]
+     ]
+    }
+   ],
+   "id": "https://extranet.ffta.fr/pdfresultats/2026/C_1249066_20261004_77417.pdf"
+  },
+  {
+   "nom": "Week-End TIR en Campagne",
+   "format": "Tir en Campagne (12 CONNUES + 12 INCONNUES)",
+   "dates": "3 octobre 2026",
+   "fin": "2026-10-03",
+   "totalArchers": 54,
+   "source": "Source : classement officiel FFTA du 3 octobre 2026",
+   "groupes": [
+    {
+     "arc": "poulies",
+     "titre": "Senior 2 Femme",
+     "lignes": [
+      [
+       "Alexandra JOBERT",
+       2,
+       364
+      ]
+     ]
+    }
+   ],
+   "id": "https://extranet.ffta.fr/pdfresultats/2026/C_1249066_20261003_77415.pdf"
+  },
+  {
+   "nom": "Concours 3D",
+   "format": "Tir 3D (1 X 24 CIBLES)",
+   "dates": "13 septembre 2026",
+   "fin": "2026-09-13",
+   "totalArchers": 113,
+   "source": "Source : classement officiel FFTA du 15 septembre 2026",
+   "groupes": [
+    {
+     "arc": "autre",
+     "titre": "Senior 2 Femme Arc Libre",
+     "lignes": [
+      [
+       "Alexandra JOBERT",
+       2,
+       419
+      ]
+     ]
+    },
+    {
+     "arc": "autre",
+     "titre": "Senior 2 Homme Arc Libre",
+     "lignes": [
+      [
+       "Romain CORMIER",
+       2,
+       480
+      ]
+     ]
+    },
+    {
+     "arc": "autre",
+     "titre": "Senior 2 Femme Arc Chasse",
+     "lignes": [
+      [
+       "Sylvie HENIN",
+       2,
+       204
+      ]
+     ]
+    }
+   ],
+   "id": "https://extranet.ffta.fr/pdfresultats/2026/3_1244031_20260913_75082.pdf"
+  },
+  {
+   "nom": "Campagne Cande 06 Septembre 2026",
+   "format": "Tir en Campagne (12 CONNUES + 12 INCONNUES)",
+   "dates": "6 septembre 2026",
+   "fin": "2026-09-06",
+   "totalArchers": 117,
+   "source": "Source : classement officiel FFTA du 8 septembre 2026",
+   "groupes": [
+    {
+     "arc": "classique",
+     "titre": "Senior 2 Homme",
+     "lignes": [
+      [
+       "Germain FRICOTEAUX",
+       1,
+       348
+      ]
+     ]
+    },
+    {
+     "arc": "poulies",
+     "titre": "Senior 2 Femme",
+     "lignes": [
+      [
+       "Alexandra JOBERT",
+       2,
+       356
+      ]
+     ]
+    },
+    {
+     "arc": "nu",
+     "titre": "Senior 2 Homme",
+     "lignes": [
+      [
+       "Nicolas DELABRIERE",
+       1,
+       269
+      ]
+     ]
+    },
+    {
+     "arc": "autre",
+     "titre": "Pro-first1",
+     "lignes": [
+      [
+       "Jonas ROUSSEL",
+       1,
+       304
+      ]
+     ]
+    }
+   ],
+   "id": "https://extranet.ffta.fr/pdfresultats/2026/C_1249047_20260906_75207.pdf"
+  },
+  {
+   "nom": "3D Village",
+   "format": "Tir 3D (1 X 24 CIBLES)",
+   "dates": "1 et 2 août 2026",
+   "fin": "2026-08-02",
+   "totalArchers": 135,
+   "source": "Source : classement officiel FFTA du 3 août 2026",
+   "groupes": [
+    {
+     "arc": "autre",
+     "titre": "Senior 2 Femme Arc Libre",
+     "lignes": [
+      [
+       "Alexandra JOBERT",
+       4,
+       381
+      ]
+     ]
+    }
+   ],
+   "id": "https://extranet.ffta.fr/pdfresultats/2026/3_1017022_20260801_75108.pdf"
   }
  ]
 }
