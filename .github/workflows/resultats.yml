@@ -11,6 +11,10 @@ on:
       jusqua:
         description: "Fin de période AAAA-MM-JJ (vide = aujourd'hui)"
         required: false
+      relire:
+        description: "Relire aussi les PDF déjà lus (à cocher après une correction du script)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -27,11 +31,15 @@ jobs:
           cache: pip
           cache-dependency-path: scraper/requirements.txt
       - run: pip install -r scraper/requirements.txt
-      - run: python scraper/scrape.py --debut "$DEBUT" --fin "$FIN"
+      - run: |
+          ARGS=""
+          if [ "$RELIRE" = "true" ]; then ARGS="--tout"; fi
+          python scraper/scrape.py --debut "$DEBUT" --fin "$FIN" $ARGS
         env:
           CLUBS: "CARQUEFOU"
           DEBUT: ${{ inputs.depuis }}
           FIN: ${{ inputs.jusqua }}
+          RELIRE: ${{ inputs.relire }}
       - name: Enregistrer les nouveaux résultats
         if: always()
         run: |
