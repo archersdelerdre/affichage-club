@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Écran du club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    box-sizing: border-box;
+    --fond: #0f2236;
+    --fond-2: #162f49;
+    --trait: #2a4764;
+    --texte: #f4f1e8;
+    --texte-doux: #a9bacb;
+    --or: #f2c230;
+    --rouge: #d9442f;
+    --bleu: #3b8bd1;
+    --argent: #c9d1da;
+    --bronze: #cd8b4a;
+    --titre: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+    --corps: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  }
+  html { height: 100%; font-size: max(9px, min(0.8333vw, 1.4815vh)); }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; height: 100%; overflow: hidden; cursor: none;
+    background: var(--fond); color: var(--texte);
+    font-family: var(--corps); font-size: 1.5rem;
+  }
+  #scene { position: relative; width: 100%; height: 100%; }
+  .slide {
+    position: absolute; inset: 0; padding: 3.5rem 5rem 6.5rem;
+    display: flex; flex-direction: column;
+    opacity: 0; visibility: hidden; transition: opacity .7s ease, visibility .7s;
+  }
+  .slide.actif { opacity: 1; visibility: visible; }
+
+  /* ---------- En-tête commun ---------- */
+  .entete { display: flex; align-items: flex-end; justify-content: space-between; gap: 3rem; margin-bottom: 2.2rem; }
+  .entete h2 { font-family: var(--titre); font-weight: 700; font-size: 4.6rem; line-height: 1; margin: 0; letter-spacing: .01em; white-space: nowrap; }
+  .entete .qui { text-align: right; }
+  .entete .qui strong { display: block; font-family: var(--titre); font-weight: 600; font-size: 2.6rem; line-height: 1.05; color: var(--or); }
+  .entete .qui span { font-size: 1.5rem; color: var(--texte-doux); }
+
+  /* ---------- Résultats ---------- */
+  .grille { flex: 1; display: grid; gap: 2rem 2.5rem; align-content: start; }
+  .grille.c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grille.c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .bloc { background: var(--fond-2); border-top: .3rem solid var(--bleu); padding: 1.4rem 1.8rem 1.2rem; }
+  .bloc.classique { border-top-color: var(--bleu); }
+  .bloc.poulies { border-top-color: var(--rouge); }
+  .bloc.nu { border-top-color: var(--or); }
+  .bloc h3 { font-family: var(--titre); font-weight: 600; font-size: 2.3rem; margin: 0 0 .7rem; letter-spacing: .02em; }
+  .ligne { display: grid; grid-template-columns: 3.6rem 1fr auto; align-items: center; gap: 1.2rem; padding: .55rem 0; border-top: 1px solid var(--trait); }
+  .ligne:first-of-type { border-top: 0; }
+  .rang {
+    font-family: var(--titre); font-weight: 700; font-size: 1.7rem; line-height: 2.7rem; height: 2.7rem; width: 3.2rem;
+    text-align: center; border-radius: 50%; color: var(--texte-doux); border: .15rem solid var(--trait);
+  }
+  .rang.r1 { background: var(--or); border-color: var(--or); color: #1b1500; }
+  .rang.r2 { background: var(--argent); border-color: var(--argent); color: #14202c; }
+  .rang.r3 { background: var(--bronze); border-color: var(--bronze); color: #1d1105; }
+  .nom { font-size: 1.9rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nom b { font-weight: 600; }
+  .score { font-family: var(--titre); font-weight: 700; font-size: 2.6rem; font-variant-numeric: tabular-nums; }
+
+  /* ---------- Ouverture d'un concours ---------- */
+  .ouverture { justify-content: center; padding-right: 48%; }
+  .club { font-family: var(--titre); font-weight: 600; font-size: 2rem; color: var(--or); letter-spacing: .04em; margin: 0 0 1.5rem; }
+  .ouverture h1 { font-family: var(--titre); font-weight: 700; font-size: 8.4rem; line-height: .95; margin: 0 0 2rem; }
+  .concours { font-size: 2.2rem; font-weight: 500; margin: 0; }
+  .dates { font-size: 2rem; color: var(--texte-doux); margin: .4rem 0 3rem; }
+  .chiffres { display: flex; gap: 4rem; margin-bottom: 3rem; }
+  .chiffres div { display: flex; flex-direction: column; }
+  .chiffres strong { font-family: var(--titre); font-size: 6.2rem; line-height: 1; font-weight: 700; }
+  .chiffres span { font-size: 1.6rem; color: var(--texte-doux); }
+  .meilleurs { border-top: 1px solid var(--trait); padding-top: 1.4rem; display: grid; gap: .5rem; max-width: 52rem; }
+  .meilleurs .m { display: grid; grid-template-columns: 15rem 1fr auto; align-items: baseline; gap: 1rem; font-size: 1.8rem; }
+  .meilleurs .m i { font-style: normal; color: var(--texte-doux); }
+  .meilleurs .m em { font-style: normal; font-family: var(--titre); font-weight: 700; font-size: 2.4rem; }
+  .cible { position: absolute; right: -14rem; top: 50%; width: 74rem; height: 74rem; transform: translateY(-50%); }
+  .cible circle.vise { animation: tombe 1.1s .5s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes tombe { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: scale(1); } }
+
+  /* ---------- Récapitulatif de plusieurs concours ---------- */
+  .liste { display: grid; gap: 1.4rem; align-content: start; }
+  .lc { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 2rem; background: var(--fond-2); border-left: .5rem solid var(--bleu); padding: 1.5rem 2.2rem; }
+  .lc strong { display: block; font-family: var(--titre); font-weight: 600; font-size: 3.4rem; line-height: 1.05; }
+  .lc span { font-size: 1.6rem; color: var(--texte-doux); }
+  .lc em { font-style: normal; font-family: var(--titre); font-weight: 700; font-size: 4.6rem; }
+  .lc small { font-size: 1.5rem; color: var(--texte-doux); }
+  .lc .stat { display: flex; flex-direction: column; align-items: center; min-width: 11rem; }
+  .lc .med { display: flex; gap: .6rem; min-width: 11.5rem; justify-content: flex-end; }
+  .lc .med .rang { color: inherit; }
+  .lc .med .rang.zero { background: none; border-color: var(--trait); color: var(--texte-doux); }
+
+  /* ---------- Événements à venir ---------- */
+  .evt { display: grid; grid-template-columns: 10rem 1fr auto; align-items: center; gap: 2.4rem; background: var(--fond-2); border-left: .5rem solid var(--bleu); padding: 1.3rem 2.2rem; }
+  .evt .date { text-align: center; font-family: var(--titre); line-height: 1; }
+  .evt .jour { display: block; font-size: 5rem; font-weight: 700; }
+  .evt .mois { display: block; font-size: 1.9rem; color: var(--or); font-weight: 600; margin-top: .3rem; }
+  .evt h3 { font-family: var(--titre); font-weight: 600; font-size: 3rem; line-height: 1.05; margin: 0 0 .4rem; }
+  .evt p { margin: 0; font-size: 1.7rem; color: var(--texte-doux); }
+  .evt .heure { font-family: var(--titre); font-weight: 700; font-size: 3rem; }
+
+  /* ---------- Indisponibilités ---------- */
+  .ind { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2rem; background: var(--fond-2); border-left: .5rem solid var(--rouge); padding: 1.4rem 2.2rem; }
+  .ind h3 { font-family: var(--titre); font-weight: 700; font-size: 3.4rem; line-height: 1.05; margin: 0 0 .4rem; }
+  .ind .quand { font-size: 2rem; font-weight: 500; margin: 0 0 .3rem; }
+  .ind p { margin: 0; font-size: 1.7rem; color: var(--texte-doux); }
+  .ind .solution { color: var(--or); font-weight: 500; margin-top: .4rem; }
+  .ind .etat { font-family: var(--titre); font-weight: 700; font-size: 2.2rem; padding: .5rem 1.4rem; border: .15rem solid var(--rouge); color: var(--rouge); white-space: nowrap; }
+  .ind .etat.cours { background: var(--rouge); color: #fff; }
+
+  /* ---------- Message vide ---------- */
+  .vide { justify-content: center; align-items: center; text-align: center; }
+  .vide h2 { font-family: var(--titre); font-size: 5rem; margin: 0 0 1rem; }
+  .vide p { font-size: 2rem; color: var(--texte-doux); margin: 0; }
+
+  /* ---------- Pied de page ---------- */
+  .pied {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 1.4rem 5rem 1.6rem;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 1.3rem; color: var(--texte-doux);
+  }
+  .points { display: flex; gap: .7rem; align-items: center; }
+  .points i { width: 1.1rem; height: 1.1rem; border-radius: 50%; background: var(--trait); transition: background .3s; }
+  .points i.actif { background: var(--or); }
+  .points i.debut { margin-left: 1.1rem; }
+  .points i.debut:first-child { margin-left: 0; }
+  .barre { position: absolute; left: 0; bottom: 0; height: .35rem; background: var(--or); width: 0; }
+  .barre.va { animation: avance var(--duree) linear forwards; }
+  @keyframes avance { from { width: 0; } to { width: 100%; } }
+
+  /* Écran en portrait (téléphone) : cible réduite, une seule colonne */
+  @media (max-aspect-ratio: 1/1) {
+    html { font-size: max(9px, 2.6vw); }
+    body { cursor: auto; }
+    .slide { overflow-y: auto; padding: 2.5rem 2rem 7rem; }
+    .ouverture { justify-content: flex-start; padding: 8rem 2rem 7rem; }
+    .ouverture > *:not(.cible) { position: relative; z-index: 1; }
+    .cible { width: 18rem; height: 18rem; right: -4rem; top: 1.5rem; transform: none; }
+    .ouverture h1 { font-size: 5.2rem; }
+    .chiffres { gap: 2.5rem; }
+    .chiffres strong { font-size: 4.4rem; }
+    .meilleurs .m { grid-template-columns: 9rem 1fr auto; }
+    .entete { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .entete h2 { font-size: 3.4rem; white-space: normal; }
+    .entete .qui { text-align: left; }
+    .grille.c2, .grille.c3 { grid-template-columns: 1fr; }
+    .lc { grid-template-columns: 1fr 1fr; }
+    .lc > div:first-child { grid-column: 1 / -1; }
+    .lc .med { justify-content: flex-start; }
+    .evt { grid-template-columns: 7rem 1fr; }
+    .evt .heure { grid-column: 2; }
+    .ind { grid-template-columns: 1fr; }
+    .pied { padding: 1rem 2rem 1.2rem; background: var(--fond); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .slide { transition: none; }
+    .cible circle.vise { animation: none; }
+  }
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<div id="scene"></div>
+<div class="pied"><span id="source"></span><div class="points" id="points"></div></div>
+<div class="barre" id="barre"></div>
+
+<script>
+const CFG = Object.assign({
+  CLUB_NOM: "Archers de l'Erdre", CLUB_LABEL: "Archers de l'Erdre, résultats du week-end",
+  DUREE_SECONDES: 14, RECHARGE_MINUTES: 15,
+  SHEET_EVENEMENTS_CSV: "", SHEET_INDISPOS_CSV: "", ORDRE: ["resultats", "indispos", "evenements"]
+}, window.CONFIG || {});
+
+const NOMS_ARC = { classique: "Arc classique", poulies: "Arc à poulies", nu: "Arc nu" };
+const scene = document.getElementById("scene");
+const points = document.getElementById("points");
+const barre = document.getElementById("barre");
+const sourceEl = document.getElementById("source");
+document.documentElement.style.setProperty("--duree", CFG.DUREE_SECONDES + "s");
+
+/* ------------------------------------------------------------ outils */
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function formatNom(n) {
+  const mots = String(n).split(" ");
+  const idx = mots.findIndex(m => m.length > 1 && m === m.toUpperCase() && /[A-ZÉÈÊËÀÂÎÏÔÛÇ]/.test(m));
+  if (idx < 0) return esc(n);
+  return esc(mots.slice(0, idx).join(" ")) + " <b>" + esc(mots.slice(idx).join(" ")) + "</b>";
+}
+const rang = c => c === 1 ? "1er" : c + "e";
+const jourMs = 86400000;
+function aujourdhui() { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function lireDate(s) {                      /* accepte 2026-10-24 ou 24/10/2026 */
+  s = String(s || "").trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
+  return null;
+}
+const fmt = (d, o) => new Intl.DateTimeFormat("fr-FR", o).format(d);
+function periode(d1, d2) {
+  if (!d2 || +d2 === +d1) return fmt(d1, { weekday: "long", day: "numeric", month: "long" });
+  if (d1.getMonth() === d2.getMonth()) return "du " + fmt(d1, { weekday: "long", day: "numeric" }) + " au " + fmt(d2, { weekday: "long", day: "numeric", month: "long" });
+  return "du " + fmt(d1, { day: "numeric", month: "long" }) + " au " + fmt(d2, { day: "numeric", month: "long" });
+}
+function parseCSV(texte) {
+  const lignes = []; let ligne = [], champ = "", guillemets = false;
+  texte = texte.replace(/^\uFEFF/, "");
+  for (let i = 0; i < texte.length; i++) {
+    const c = texte[i];
+    if (guillemets) {
+      if (c === '"' && texte[i + 1] === '"') { champ += '"'; i++; }
+      else if (c === '"') guillemets = false;
+      else champ += c;
+    } else if (c === '"') guillemets = true;
+    else if (c === ",") { ligne.push(champ); champ = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && texte[i + 1] === "\n") i++;
+      ligne.push(champ); champ = ""; lignes.push(ligne); ligne = [];
+    } else champ += c;
+  }
+  if (champ !== "" || ligne.length) { ligne.push(champ); lignes.push(ligne); }
+  const [entete, ...corps] = lignes.filter(l => l.some(x => x.trim() !== ""));
+  if (!entete) return [];
+  const cles = entete.map(h => h.trim().toLowerCase());
+  return corps.map(l => Object.fromEntries(cles.map((k, i) => [k, (l[i] || "").trim()])));
+}
+async function chercher(url, json) {
+  try {
+    const sep = url.includes("?") ? "&" : "?";
+    const r = await fetch(url + sep + "t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) return null;
+    return json ? await r.json() : await r.text();
+  } catch (e) { return null; }
+}
+
+/* ------------------------------------------------------------ construction des écrans */
+function cible() {
+  const anneaux = [["#f4f1e8", 50], ["#0b1520", 40], ["#3b8bd1", 30], ["#d9442f", 20], ["#f2c230", 10]];
+  const cercles = anneaux.map(([c, r], i) =>
+    `<circle class="vise" cx="50" cy="50" r="${r}" fill="${c}" style="transform-origin:50px 50px;animation-delay:${.5 + i * .12}s"/>`).join("");
+  return `<svg class="cible" viewBox="0 0 100 100" aria-hidden="true"><g>${cercles}</g></svg>`;
+}
+function hauteur(blocs, cols) {
+  let h = 0;
+  for (let i = 0; i < blocs.length; i += cols) h += 6 + 3.9 * Math.max(...blocs.slice(i, i + cols).map(b => b.lignes.length)) + 2;
+  return h;
+}
+function decouper(blocs, cols) {
+  const pages = []; let cur = [];
+  blocs.forEach(b => {
+    if (cur.length && hauteur(cur.concat(b), cols) > 47) { pages.push(cur); cur = []; }
+    cur.push(b);
+  });
+  if (cur.length) pages.push(cur);
+  return pages;
+}
+function section(classe, html, source, debut) {
+  const el = document.createElement("section");
+  el.className = "slide " + classe;
+  el.innerHTML = html;
+  return { el, source, debut: !!debut };
+}
+function entete(titre, haut, bas) {
+  return `<div class="entete"><h2>${esc(titre)}</h2><div class="qui"><strong>${esc(haut)}</strong><span>${esc(bas)}</span></div></div>`;
+}
+
+function ecransResultats(donnees) {
+  const concours = (donnees && donnees.concours) || [];
+  const out = [];
+  if (concours.length) {
+    const stats = concours.map(c => {
+      const lignes = c.groupes.flatMap(g => g.lignes);
+      const med = [1, 2, 3].map(r => lignes.filter(l => l[1] === r).length);
+      return { c, archers: lignes.length, med, podiums: med[0] + med[1] + med[2] };
+    });
+    const totalPodiums = stats.reduce((a, x) => a + x.podiums, 0);
+    const totalArchers = stats.reduce((a, x) => a + x.archers, 0);
+    const libelle = (n, un, plusieurs) => n + " " + (n > 1 ? plusieurs : un);
+    pages(stats, 5).forEach((page, i, tout) => {
+      const lignes = page.map(x => `
+        <div class="lc">
+          <div><strong>${esc(x.c.nom)}</strong><span>${esc(x.c.format)}, ${esc(x.c.dates)}</span></div>
+          <div class="stat"><em>${x.archers}</em><small>${x.archers > 1 ? "archers" : "archer"}</small></div>
+          <div class="stat"><em>${x.podiums}</em><small>${x.podiums > 1 ? "podiums" : "podium"}</small></div>
+          <div class="med" title="1res, 2es et 3es places">
+            ${x.med.map((n, k) => `<span class="rang r${k + 1} ${n ? "" : "zero"}">${n}</span>`).join("")}
+          </div>
+        </div>`).join("");
+      const bas = tout.length > 1 ? `page ${i + 1} sur ${tout.length}` : libelle(totalArchers, "archer du club", "archers du club");
+      out.push(section("", `${entete("Les concours du week-end", libelle(totalPodiums, "podium", "podiums"), bas)}<div class="liste">${lignes}</div>`, "Classements officiels FFTA", i === 0));
+    });
+  }
+  concours.forEach(c => {
+    const toutes = c.groupes.flatMap(g => g.lignes.map(l => ({ nom: l[0], score: l[2], arc: g.arc })));
+    const meilleurs = ["poulies", "classique", "nu"].map(a => {
+      const l = toutes.filter(x => x.arc === a).sort((x, y) => y.score - x.score)[0];
+      return l ? { arc: NOMS_ARC[a], nom: l.nom, score: l.score } : null;
+    }).filter(Boolean);
+    out.push(section("ouverture", `
+      ${cible()}
+      <p class="club">${esc(CFG.CLUB_LABEL)}</p>
+      <h1>${esc(c.nom)}</h1>
+      <p class="concours">${esc(c.format)}</p>
+      <p class="dates">${esc(c.dates)}</p>
+      <div class="chiffres">
+        <div><strong>${toutes.length}</strong><span>archers du club</span></div>
+        ${c.totalArchers ? `<div><strong>${c.totalArchers}</strong><span>archers au total</span></div>` : ""}
+      </div>
+      <div class="meilleurs">${meilleurs.map(m => `<div class="m"><i>${esc(m.arc)}</i><span>${formatNom(m.nom)}</span><em>${m.score}</em></div>`).join("")}</div>`,
+      c.source, true));
+    [["classique"], ["poulies", "nu"]].forEach(arcs => {
+      const blocs = c.groupes.filter(g => arcs.includes(g.arc));
+      if (!blocs.length) return;
+      const cols = arcs[0] === "classique" ? 2 : 3;
+      decouper(blocs, cols).forEach(page => {
+        const titre = [...new Set(page.map(g => g.arc))].map(a => NOMS_ARC[a]).join(" et ");
+        const html = page.map(g => `
+          <div class="bloc ${g.arc}"><h3>${esc(g.titre)}</h3>
+          ${g.lignes.map(([n, r, sc]) => `<div class="ligne"><span class="rang ${r <= 3 ? "r" + r : ""}">${rang(r)}</span><span class="nom">${formatNom(n)}</span><span class="score">${sc}</span></div>`).join("")}
+          </div>`).join("");
+        out.push(section("", `${entete(titre, c.nom, c.dates)}<div class="grille c${cols}">${html}</div>`, c.source, false));
+      });
+    });
+  });
+  return out;
+}
+
+function pages(liste, parPage) {
+  const p = [];
+  for (let i = 0; i < liste.length; i += parPage) p.push(liste.slice(i, i + parPage));
+  return p;
+}
+
+function ecransEvenements(lignes) {
+  const auj = aujourdhui();
+  const evts = (lignes || []).map(l => ({ ...l, d1: lireDate(l.date_debut), d2: lireDate(l.date_fin) }))
+    .filter(e => e.d1 && e.titre && (e.d2 || e.d1) >= auj)
+    .sort((a, b) => a.d1 - b.d1);
+  return pages(evts, 4).map((page, i, tout) => {
+    const html = page.map(e => {
+      const sous = [e.lieu, e.details].filter(Boolean).map(esc).join("<br>");
+      const multi = e.d2 && +e.d2 !== +e.d1 ? `<p>${esc(periode(e.d1, e.d2))}</p>` : "";
+      return `<div class="evt">
+        <div class="date"><span class="jour">${e.d1.getDate()}</span><span class="mois">${esc(fmt(e.d1, { month: "short" }))}</span></div>
+        <div><h3>${esc(e.titre)}</h3>${multi}<p>${sous}</p></div>
+        <div class="heure">${esc(e.heure)}</div></div>`;
+    }).join("");
+    return section("", `${entete("À venir", CFG.CLUB_NOM, tout.length > 1 ? `page ${i + 1} sur ${tout.length}` : "Agenda du club")}<div class="liste">${html}</div>`, "Agenda du club", i === 0);
+  });
+}
+
+function ecransIndispos(lignes) {
+  const auj = aujourdhui();
+  const horizon = new Date(+auj + 45 * jourMs);
+  const items = (lignes || []).map(l => ({ ...l, d1: lireDate(l.date_debut), d2: lireDate(l.date_fin) }))
+    .filter(e => e.d1 && e.lieu && (e.d2 || e.d1) >= auj && e.d1 <= horizon)
+    .sort((a, b) => a.d1 - b.d1);
+  return pages(items, 4).map((page, i, tout) => {
+    const html = page.map(e => {
+      const encours = e.d1 <= auj;
+      const dans = Math.round((e.d1 - auj) / jourMs);
+      const etat = encours ? "En cours" : (dans === 1 ? "Demain" : "Dans " + dans + " jours");
+      return `<div class="ind">
+        <div><h3>${esc(e.lieu)} indisponible</h3>
+          <p class="quand">${esc(periode(e.d1, e.d2))}</p>
+          ${e.motif ? `<p>${esc(e.motif)}</p>` : ""}
+          ${e.solution ? `<p class="solution">À la place : ${esc(e.solution)}</p>` : ""}</div>
+        <div class="etat ${encours ? "cours" : ""}">${esc(etat)}</div></div>`;
+    }).join("");
+    return section("", `${entete("Indisponible", CFG.CLUB_NOM, tout.length > 1 ? `page ${i + 1} sur ${tout.length}` : "Salles et terrains")}<div class="liste">${html}</div>`, "Informations du club", i === 0);
+  });
+}
+
+async function construire() {
+  const [res, evt, ind] = await Promise.all([
+    chercher("data/resultats.json", true),
+    CFG.SHEET_EVENEMENTS_CSV ? chercher(CFG.SHEET_EVENEMENTS_CSV, false) : null,
+    CFG.SHEET_INDISPOS_CSV ? chercher(CFG.SHEET_INDISPOS_CSV, false) : null
+  ]);
+  const parType = {
+    resultats: () => ecransResultats(res),
+    evenements: () => evt ? ecransEvenements(parseCSV(evt)) : [],
+    indispos: () => ind ? ecransIndispos(parseCSV(ind)) : []
+  };
+  const tous = CFG.ORDRE.flatMap(k => (parType[k] ? parType[k]() : []));
+  if (!tous.length) {
+    tous.push(section("vide", `<h2>${esc(CFG.CLUB_NOM)}</h2><p>Rien à afficher pour le moment</p>`, "", true));
+  }
+  return tous;
+}
+
+/* ------------------------------------------------------------ défilement */
+let slides = [], courant = -1, minuterie = null;
+function montrer(i) {
+  courant = (i + slides.length) % slides.length;
+  slides.forEach((s, k) => s.el.classList.toggle("actif", k === courant));
+  [...points.children].forEach((p, k) => p.classList.toggle("actif", k === courant));
+  sourceEl.textContent = slides[courant].source;
+}
+function afficher(i) {
+  montrer(i);
+  barre.classList.remove("va"); void barre.offsetWidth; barre.classList.add("va");
+  clearTimeout(minuterie);
+  minuterie = setTimeout(() => afficher(courant + 1), CFG.DUREE_SECONDES * 1000);
+}
+function installer(nouveaux) {
+  scene.replaceChildren(...nouveaux.map(s => s.el));
+  points.replaceChildren(...nouveaux.map(s => { const p = document.createElement("i"); if (s.debut) p.className = "debut"; return p; }));
+  slides = nouveaux;
+}
+async function demarrer() {
+  installer(await construire());
+  afficher(0);
+  setInterval(async () => {                    /* relit les données sans interrompre le défilement */
+    const nouveaux = await construire();
+    const i = Math.min(courant, nouveaux.length - 1);
+    installer(nouveaux);
+    montrer(i);
+  }, CFG.RECHARGE_MINUTES * 60000);
+}
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowRight") afficher(courant + 1);
+  if (e.key === "ArrowLeft") afficher(courant - 1);
+});
+document.addEventListener("click", () => afficher(courant + 1));
+demarrer();
+</script>
+</body>
+</html>
