@@ -11,6 +11,7 @@ Principe :
 Usage :
   python scraper/scrape.py                      # 9 derniers jours
   python scraper/scrape.py --debut 2026-10-10 --fin 2026-10-12
+  python scraper/scrape.py --debut 2026-01-01   # rattrapage de toute l'année (long : à lancer par tranches)
   python scraper/scrape.py --pdf resultats.pdf  # test sur un PDF local (affiche le JSON)
   python scraper/scrape.py --tout               # retélécharge aussi les PDF déjà vus
 
@@ -36,7 +37,6 @@ FICHIER = RACINE / "data" / "resultats.json"
 VUS = RACINE / "data" / "vus.json"
 
 CLUBS = [c.strip().upper() for c in os.environ.get("CLUBS", "CARQUEFOU").split(",") if c.strip()]
-JOURS_GARDES = 10
 LISTE_URL = "https://www.ffta.fr/competitions"
 HEADERS = {"User-Agent": "Mozilla/5.0 (affichage-club; usage associatif, 1 passage par jour)"}
 MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet",
@@ -44,11 +44,8 @@ MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet",
 PETITS = {"a", "à", "au", "aux", "de", "des", "du", "la", "le", "les", "sur", "sous", "et", "en", "d", "l"}
 ACCENTS_MAJ = "ÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ"
 
-# rang, « nom + club », licence, catégorie, m1, m2, total, [nb10] [nb9]
-LIGNE_RESULTAT = re.compile(
-    r"^(\d+)\s+(.+?)\s+(\d{7}[A-Z])\s+(\S+)\s+(\d+)\s+(\d+)\s+(\d+)((?:\s+\d+){0,2})\s*$"
-)
-ENTETE_GROUPE = re.compile(r"^([A-Za-zÀ-ÿ].*?\s20\d\d)(?:\s*\(Suite\))?$")
+# rang, « nom + club », licence, catégorie, puis tous les nombres (manches, total, nb de 10/9 ou 6/5)
+LIGNE_RESULTAT = re.compile(r"^(\d+)\s+(.+?)\s+(\d{7}[A-Z])\s+(\S+)((?:\s+\d+)+)\s*$")
 
 # Corrections de noms à la main : data/corrections.json  {"Raphaêl SEROC": "Raphaël SEROC"}
 try:
@@ -105,12 +102,25 @@ def type_arc(titre):
         return "poulies"
     if "arc nu" in t:
         return "nu"
-    return "classique"
+    if "arc droit" in t:
+        return "droit"
+    if "classique" in t:
+        return "classique"
+    return "autre"                                   # Promotion, Pro-first, etc.
 
 
 def titre_court(titre):
-    t = re.sub(r"\s+(Arc\s+(?:Classique|à Poulies|a Poulies|Nu)|Classique)\s+20\d\d.*$", "", titre).strip()
-    return re.sub(r"\s+20\d\d.*$", "", t).strip()
+    t = re.sub(r"\s*\(Suite\)\s*$", "", titre).strip()
+    t = re.sub(r"\s+(Arc\s+(?:Classique|à Poulies|a Poulies|Nu|Droit)|Classique)(\s+20\d\d)?.*$", "", t).strip()
+    return re.sub(r"\s+20\d\d$", "", t).strip()
+
+
+def nb_manches(ligne):
+    """Lit l'en-tête du tableau : 'Clt Nom Club Licence Cat m m Total ...' -> 2 manches ; 'Cat P1 Total' -> 1."""
+    t = ligne.split()
+    if "Cat" in t and "Total" in t and t.index("Total") > t.index("Cat"):
+        return t.index("Total") - t.index("Cat") - 1
+    return 2
 
 
 # ----------------------------------------------------------------- lecture d'un PDF
@@ -119,15 +129,20 @@ def lire_pdf(contenu):
     with pdfplumber.open(io.BytesIO(contenu)) as pdf:
         texte = "\n".join((p.extract_text() or "") for p in pdf.pages)
 
-    m = re.search(r"Classement Officiel\s+(.+?)\s+du\s+(\d\d)/(\d\d)/(\d{4})\s+au\s+(\d\d)/(\d\d)/(\d{4})", texte, re.S)
+    m = re.search(
+        r"Classement Officiel\s+(.+?)\s+(?:du\s+(\d\d)/(\d\d)/(\d{4})\s+au\s+(\d\d)/(\d\d)/(\d{4})|le\s+(\d\d)/(\d\d)/(\d{4}))",
+        texte, re.S)
     if not m:
         return None
     bloc = re.sub(r"\s+", " ", m.group(1)).strip(" -")
     parties = [p.strip() for p in re.split(r"\s+-\s+", bloc)]
-    d1 = dt.date(int(m.group(4)), int(m.group(3)), int(m.group(2)))
-    d2 = dt.date(int(m.group(7)), int(m.group(6)), int(m.group(5)))
+    if m.group(2):
+        d1 = dt.date(int(m.group(4)), int(m.group(3)), int(m.group(2)))
+        d2 = dt.date(int(m.group(7)), int(m.group(6)), int(m.group(5)))
+    else:
+        d1 = d2 = dt.date(int(m.group(10)), int(m.group(9)), int(m.group(8)))
 
-    groupes, tampon, courant, arret, dernier = {}, [], None, False, None
+    groupes, tampon, courant, arret, dernier, prec, manches = {}, [], None, False, None, None, 2
     for ligne in (l.strip() for l in texte.splitlines()):
         if not ligne:
             continue
@@ -135,40 +150,38 @@ def lire_pdf(contenu):
             arret = True
         if arret:
             continue
-        if ligne.startswith(("Clt ", "Tir ", "Nbre d'archers", "Classement Officiel")) or re.search(r"Page \d+/\d+$", ligne):
+        if ligne.startswith(("Clt ", "Tir ")):       # en-tête de tableau : la ligne d'avant est le titre de la catégorie
+            if prec:
+                courant = re.sub(r"\s*\(Suite\)\s*$", "", prec).strip()
+            manches = nb_manches(ligne)
             tampon, dernier = [], None
             continue
-        if " - " not in ligne and not re.search(r"\d{7}[A-Z]", ligne):
-            g = ENTETE_GROUPE.match(ligne)
-            if g:
-                courant = g.group(1)
-                tampon, dernier = [], None
-                continue
-        if courant is None:
+        if ligne.startswith(("Nbre d'archers", "Classement Officiel")) or re.search(r"Page \d+/\d+$", ligne):
+            tampon, dernier = [], None
             continue
         r = LIGNE_RESULTAT.match(" ".join(tampon + [ligne]))
         if r:
-            reste = r.group(2)
-            club = next((c for c in CLUBS if reste.upper().endswith(c)), None)
-            nom = reste[: -len(club)].strip() if club else reste
-            extra = re.findall(r"\d+", r.group(8))
-            if len(extra) == 2:
-                nb10, nb9 = int(extra[0]), int(extra[1])
-            else:                                     # une seule valeur : on la compte comme nb de 9
-                nb10, nb9 = 0, (int(extra[0]) if extra else 0)
-            dernier = {
-                "licence": r.group(3), "total": int(r.group(7)),
-                "nb10": nb10, "nb9": nb9, "club": club, "nom": nom,
-            }
-            groupes.setdefault(courant, []).append(dernier)
+            nombres = [int(x) for x in re.findall(r"\d+", r.group(5))]
+            if courant is not None and len(nombres) > manches:
+                reste = r.group(2)
+                club = next((c for c in CLUBS if reste.upper().endswith(c)), None)
+                nom = reste[: -len(club)].strip() if club else reste
+                extra = nombres[manches + 1:]
+                if len(extra) >= 2:
+                    nb_haut, nb_bas = extra[0], extra[1]
+                else:                                 # une seule valeur : on la compte comme 2e colonne
+                    nb_haut, nb_bas = 0, (extra[0] if extra else 0)
+                dernier = {"licence": r.group(3), "total": nombres[manches],
+                           "nb10": nb_haut, "nb9": nb_bas, "club": club, "nom": nom}
+                groupes.setdefault(courant, []).append(dernier)
             tampon = []
         elif dernier is not None and not re.search(r"\d", ligne) and len(ligne) < 40:
-            dernier["nom"] = f"{dernier['nom']} {ligne}".strip()   # prénom coupé sur la ligne suivante
+            dernier["nom"] = f"{dernier['nom']} {ligne}".strip()   # prénom ou club coupé sur la ligne suivante
             dernier = None
         elif re.match(r"^\d+\s", ligne):
             tampon, dernier = [ligne], None          # début d'une ligne coupée sur plusieurs lignes
         else:
-            tampon, dernier = (tampon + [ligne])[-3:], None
+            tampon, dernier, prec = (tampon + [ligne])[-3:], None, ligne
 
     sorties = []
     for titre, lignes in groupes.items():
@@ -190,7 +203,7 @@ def lire_pdf(contenu):
     if not sorties:
         return {"vide": True}
 
-    ordre = {"classique": 0, "poulies": 1, "nu": 2}
+    ordre = {"classique": 0, "poulies": 1, "nu": 2, "droit": 3, "autre": 4}
     sorties.sort(key=lambda g: ordre[g["arc"]])      # tri stable : l'ordre du PDF reste dans chaque type
 
     total = re.search(r"Nombre total d'archers\s*:\s*(\d+)", texte)
@@ -209,7 +222,16 @@ def lire_pdf(contenu):
 
 
 # ----------------------------------------------------------------- liste des compétitions
-def lister_pdfs(debut, fin):
+def fenetres(debut, fin, pas=14):
+    """Découpe une longue période en tranches de 14 jours (la liste FFTA est paginée)."""
+    d, f = dt.date.fromisoformat(debut), dt.date.fromisoformat(fin)
+    while d <= f:
+        e = min(d + dt.timedelta(days=pas - 1), f)
+        yield d.isoformat(), e.isoformat()
+        d = e + dt.timedelta(days=1)
+
+
+def lister_fenetre(debut, fin):
     liens, epreuves_vues = [], set()
     for page in range(60):
         r = requests.get(LISTE_URL, headers=HEADERS, timeout=30, params={
@@ -231,12 +253,31 @@ def lister_pdfs(debut, fin):
     return liens
 
 
+def lister_pdfs(debut, fin):
+    liens = []
+    for d, f in fenetres(debut, fin):
+        trouves = lister_fenetre(d, f)
+        print(f"  {d} -> {f} : {len(trouves)} PDF")
+        liens += [u for u in trouves if u not in liens]
+    return liens
+
+
 # ----------------------------------------------------------------- programme principal
 def charger(chemin, defaut):
     try:
         return json.loads(chemin.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError):
         return defaut
+
+
+def sauver(par_id, vus):
+    """Écrit tout l'historique des concours (rien n'est effacé)."""
+    concours = sorted(par_id.values(), key=lambda c: c["fin"], reverse=True)
+    FICHIER.parent.mkdir(exist_ok=True)
+    FICHIER.write_text(json.dumps({"maj": dt.date.today().isoformat(), "concours": concours},
+                                  ensure_ascii=False, indent=1), encoding="utf-8")
+    VUS.write_text(json.dumps(sorted(vus), indent=1), encoding="utf-8")
+    return len(concours)
 
 
 def main():
@@ -262,10 +303,9 @@ def main():
     par_id = {c["id"]: c for c in donnees.get("concours", [])}
 
     liens = lister_pdfs(debut, fin)
-    print(f"{len(liens)} PDF de résultats publiés sur la période")
-    for url in liens:
-        if url in vus:
-            continue
+    a_faire = [u for u in liens if u not in vus]
+    print(f"{len(liens)} PDF de résultats publiés, {len(a_faire)} à lire")
+    for n, url in enumerate(a_faire, start=1):
         try:
             r = requests.get(url, headers=HEADERS, timeout=90)
             r.raise_for_status()
@@ -274,18 +314,20 @@ def main():
             print(f"  ! {url} : {e}", file=sys.stderr)
             continue
         vus.add(url)
+        if res is None:
+            print(f"  ? format non reconnu : {url}")
+        elif res.get("vide"):
+            print(f"  - aucun archer du club : {url}")
         if res and not res.get("vide"):
             res["id"] = url
             par_id[url] = res
             print(f"  + {res['nom']} ({res['dates']}) : {sum(len(g['lignes']) for g in res['groupes'])} archers du club")
+        if n % 25 == 0:                              # sauvegarde régulière pour les longs rattrapages
+            sauver(par_id, vus)
+            print(f"  ... {n}/{len(a_faire)}")
         time.sleep(0.5)
 
-    limite = (aujourdhui - dt.timedelta(days=JOURS_GARDES)).isoformat()
-    concours = sorted((c for c in par_id.values() if c["fin"] >= limite), key=lambda c: c["fin"], reverse=True)
-    FICHIER.parent.mkdir(exist_ok=True)
-    FICHIER.write_text(json.dumps({"maj": aujourdhui.isoformat(), "concours": concours}, ensure_ascii=False, indent=1), encoding="utf-8")
-    VUS.write_text(json.dumps(sorted(vus), indent=1), encoding="utf-8")
-    print(f"{len(concours)} concours dans data/resultats.json")
+    print(f"{sauver(par_id, vus)} concours avec des archers du club dans data/resultats.json")
 
 
 if __name__ == "__main__":
