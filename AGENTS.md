@@ -15,7 +15,7 @@ flowchart LR
   C[data/corrections.json] --> S
   S --> R[data/resultats.json]
   S --> V[data/vus.json]
-  GA[GitHub Action cron Mon-Thu 06:00 UTC] -->|runs, commits data/| S
+  GA[GitHub Action, manual run only] -->|runs, commits data/| S
   R --> P[index.html on GitHub Pages]
   G[Google Sheets published CSV] --> P
   CFG[config.js] --> P
@@ -108,7 +108,7 @@ python3 -m http.server                           # then open http://localhost:80
 - `scraper/scrape.py`: the scraper.
 - `data/resultats.json`: currently sample data (`exemple-carquefou-janvier-2026`). The first real run replaces it.
 - `.github/workflows/resultats.yml`:
-  - runs on cron `0 6 * * 1-4` and `workflow_dispatch`
+  - runs only by hand (`workflow_dispatch`); the cron is turned off for now and will be reworked
   - needs `contents: write`
   - commits "Résultats mis à jour" only when `data/` changed
 - `README.md`: French setup guide (Pages, Actions permissions, Sheets, Raspberry Pi kiosk, known limits).

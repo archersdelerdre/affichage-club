@@ -12,7 +12,7 @@ config.js           réglages : nom du club, durée des écrans, liens des table
 data/resultats.json les résultats (écrit tout seul par le script)
 data/corrections.json  noms à corriger à la main (accents manquants dans les PDF)
 scraper/scrape.py   lit la FFTA et écrit data/resultats.json
-.github/workflows/  lance le script du lundi au jeudi
+.github/workflows/  lance le script (à la main pour l'instant)
 modele-tableur/     modèles à importer dans Google Sheets
 ```
 
@@ -23,7 +23,7 @@ Le fichier `data/resultats.json` fourni contient un exemple (Concours salle Carq
 1. Créer un dépôt GitHub (par exemple `affichage-club`) et y déposer tous ces fichiers.
 2. **Settings > Pages** : Source = « Deploy from a branch », branche `main`, dossier `/ (root)`. L'adresse sera `https://VOTRE-NOM.github.io/affichage-club/`.
 3. **Settings > Actions > General > Workflow permissions** : choisir « Read and write permissions ».
-4. **Actions > Résultats FFTA > Run workflow** pour lancer un premier passage à la main. Ensuite il tourne tout seul du lundi au jeudi (les PDF de résultats sortent parfois plusieurs jours après le concours).
+4. **Actions > Résultats FFTA > Run workflow** pour lancer un passage à la main. Le lancement automatique est coupé pour l'instant.
 
 Pour changer de club, modifier `CLUBS: "CARQUEFOU"` dans `.github/workflows/resultats.yml` (le nom tel qu'il apparaît dans la colonne Club des PDF).
 

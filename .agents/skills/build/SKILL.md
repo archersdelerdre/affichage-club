@@ -93,7 +93,7 @@ travaille sur **sa copie sur GitHub** (un « fork ») et propose ses changements
 Dans la suite, **la base** est la branche principale du club : `upstream/main` (ou `origin/main` sans fork). Vérifie
 son nom avec `git remote show upstream` (ligne « HEAD branch ») et utilise-le partout.
 
-Le robot GitHub ajoute des commits « Résultats mis à jour » sur `main` du lundi au jeudi : c'est normal.
+Le robot GitHub peut ajouter des commits « Résultats mis à jour » sur `main` quand Jonas le lance : c'est normal.
 
 ## Étape 4 : une branche neuve pour chaque idée
 
