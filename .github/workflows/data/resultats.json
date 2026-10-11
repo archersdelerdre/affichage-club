@@ -1,0 +1,327 @@
+{
+ "maj": "2026-01-13",
+ "concours": [
+  {
+   "nom": "Concours Salle Carquefou",
+   "format": "Tir à 18m (2X18M)",
+   "dates": "10 et 11 janvier 2026",
+   "fin": "2026-01-11",
+   "totalArchers": 132,
+   "source": "Source : classement officiel FFTA du 13 janvier 2026",
+   "groupes": [
+    {
+     "arc": "classique",
+     "titre": "U11 Femme",
+     "lignes": [
+      [
+       "Clémence TUAL",
+       1,
+       403
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "U13 Homme",
+     "lignes": [
+      [
+       "Anatole MARIE",
+       2,
+       351
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "U15 Femme",
+     "lignes": [
+      [
+       "Angèle CHALET",
+       1,
+       428
+      ],
+      [
+       "Théa MARTIN DONGEON",
+       3,
+       411
+      ],
+      [
+       "Julia FRERY",
+       4,
+       403
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "U15 Homme",
+     "lignes": [
+      [
+       "Ben SAULAIS",
+       3,
+       448
+      ],
+      [
+       "Baptiste BREZUN",
+       4,
+       440
+      ],
+      [
+       "Raphaël SEROC",
+       5,
+       436
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "U18 Femme",
+     "lignes": [
+      [
+       "Julia MANOUKIAN",
+       1,
+       428
+      ],
+      [
+       "Julia MERLE",
+       2,
+       428
+      ],
+      [
+       "Ninon TERRIEN",
+       4,
+       346
+      ],
+      [
+       "Lali GANACHAUD",
+       5,
+       288
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "U18 Homme",
+     "lignes": [
+      [
+       "Ryan VERONET",
+       3,
+       429
+      ],
+      [
+       "Mattei MAUZ TIUCA",
+       5,
+       391
+      ],
+      [
+       "Maxime PERRON",
+       7,
+       298
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "Senior 1 Femme",
+     "lignes": [
+      [
+       "Clarisse KERLEAU",
+       2,
+       508
+      ],
+      [
+       "Fiona ROHOU",
+       4,
+       486
+      ],
+      [
+       "Nadège POUCHER",
+       5,
+       467
+      ],
+      [
+       "Agathe LAGRENADE",
+       6,
+       465
+      ],
+      [
+       "Amélie SEVIN",
+       11,
+       437
+      ],
+      [
+       "Héloïse SIZER MARSAC",
+       14,
+       285
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "Senior 1 Homme",
+     "lignes": [
+      [
+       "Vivien FRAGNI",
+       1,
+       530
+      ],
+      [
+       "Yoan PRUVOST",
+       3,
+       515
+      ],
+      [
+       "Valentin ROBIN",
+       4,
+       501
+      ],
+      [
+       "Alexandre CHAIGNE",
+       7,
+       484
+      ],
+      [
+       "Antoine DELAUNAY",
+       10,
+       456
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "Senior 2 Homme",
+     "lignes": [
+      [
+       "Christian FERRAND",
+       3,
+       520
+      ],
+      [
+       "Vincent MANOUKIAN",
+       5,
+       512
+      ],
+      [
+       "Emmanuel PUBERT",
+       9,
+       483
+      ],
+      [
+       "Grégory SEVIN",
+       14,
+       436
+      ],
+      [
+       "Mathieu DROUARD",
+       17,
+       404
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "Senior 3 Homme",
+     "lignes": [
+      [
+       "Patrick RABU",
+       6,
+       477
+      ],
+      [
+       "Bruno LEMOINE",
+       10,
+       454
+      ]
+     ]
+    },
+    {
+     "arc": "poulies",
+     "titre": "U18-U21 Homme",
+     "lignes": [
+      [
+       "Milan SCHLACHTER",
+       1,
+       550
+      ]
+     ]
+    },
+    {
+     "arc": "poulies",
+     "titre": "Senior 1 Femme",
+     "lignes": [
+      [
+       "Olympe ADAM",
+       1,
+       563
+      ]
+     ]
+    },
+    {
+     "arc": "poulies",
+     "titre": "Senior 2 Femme",
+     "lignes": [
+      [
+       "Alexandra JOBERT",
+       1,
+       560
+      ],
+      [
+       "Anne TEILLARD",
+       2,
+       528
+      ],
+      [
+       "Aurelie FERRAND",
+       3,
+       511
+      ]
+     ]
+    },
+    {
+     "arc": "poulies",
+     "titre": "Senior 2 Homme",
+     "lignes": [
+      [
+       "Ioan LE GUE",
+       2,
+       574
+      ],
+      [
+       "David SAUX",
+       4,
+       553
+      ],
+      [
+       "Michael BERGOT",
+       5,
+       549
+      ]
+     ]
+    },
+    {
+     "arc": "poulies",
+     "titre": "Senior 3 Homme",
+     "lignes": [
+      [
+       "Carmelle STÉPHANE",
+       1,
+       545
+      ]
+     ]
+    },
+    {
+     "arc": "nu",
+     "titre": "Adulte Homme",
+     "lignes": [
+      [
+       "Nicolas DELABRIERE",
+       2,
+       501
+      ]
+     ]
+    }
+   ],
+   "id": "exemple-carquefou-janvier-2026"
+  }
+ ]
+}
