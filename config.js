@@ -2,11 +2,11 @@
 window.CONFIG = {
   CLUB_NOM: "Archers de l'Erdre",
   CLUB_LABEL: "Archers de l'Erdre, résultats du week-end",
-  DUREE_SECONDES: 5,          // durée d'un écran
+  DUREE_SECONDES: 10,          // durée d'un écran 10sec
   RECHARGE_MINUTES: 15,        // la page relit les données toutes les 15 minutes
 
   NB_WEEKENDS: 3,              // les 3 derniers week-ends qui ont des résultats (liste des concours + podiums)
-  MAX_JOURS: 45,               // on n'affiche pas de résultats plus vieux que 45 jours
+  MAX_JOURS: 60,               // on n'affiche pas de résultats plus vieux que 60 jours
   DETAIL_WEEKENDS: 3,          // détail archer par archer pour les N week-ends les plus récents
 
   /* Liens CSV de Google Sheets (Fichier > Partager > Publier sur le Web > un onglet > CSV).
