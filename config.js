@@ -7,7 +7,7 @@ window.CONFIG = {
 
   NB_WEEKENDS: 3,              // les 3 derniers week-ends qui ont des résultats (liste des concours + podiums)
   MAX_JOURS: 45,               // on n'affiche pas de résultats plus vieux que 45 jours
-  DETAIL_WEEKENDS: 1,          // détail archer par archer pour les N week-ends les plus récents
+  DETAIL_WEEKENDS: 3,          // détail archer par archer pour les N week-ends les plus récents
 
   /* Liens CSV de Google Sheets (Fichier > Partager > Publier sur le Web > un onglet > CSV).
      Laisser vide pour ne pas afficher la page correspondante. */
