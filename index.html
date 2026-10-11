@@ -175,7 +175,7 @@
 <script>
 const CFG = Object.assign({
   CLUB_NOM: "Archers de l'Erdre", CLUB_LABEL: "Archers de l'Erdre, résultats du week-end",
-  DUREE_SECONDES: 14, RECHARGE_MINUTES: 15,
+  DUREE_SECONDES: 14, RECHARGE_MINUTES: 15, NB_WEEKENDS: 3, DETAIL_WEEKENDS: 1, MAX_JOURS: 45,
   SHEET_EVENEMENTS_CSV: "", SHEET_INDISPOS_CSV: "", ORDRE: ["resultats", "indispos", "evenements"]
 }, window.CONFIG || {});
 
@@ -273,63 +273,91 @@ function entete(titre, haut, bas) {
   return `<div class="entete"><h2>${esc(titre)}</h2><div class="qui"><strong>${esc(haut)}</strong><span>${esc(bas)}</span></div></div>`;
 }
 
-function ecransResultats(donnees) {
-  const concours = (donnees && donnees.concours) || [];
+/* ----- week-ends : un week-end = le samedi et le dimanche ----- */
+function plusJours(d, n) { const r = new Date(d.getFullYear(), d.getMonth(), d.getDate()); r.setDate(r.getDate() + n); return r; }
+function samediDe(d) { return plusJours(d, -((d.getDay() + 1) % 7)); }   /* samedi le plus récent avant ou égal à d */
+function libelleWeekend(sam) {
+  const dim = plusJours(sam, 1);
+  const jm = x => fmt(x, { day: "numeric", month: "long" });
+  return sam.getMonth() === dim.getMonth() ? `${sam.getDate()} et ${jm(dim)}` : `${jm(sam)} au ${jm(dim)}`;
+}
+
+function ecransRecap(titre, concours) {
+  const stats = concours.map(c => {
+    const lignes = c.groupes.flatMap(g => g.lignes);
+    const med = [1, 2, 3].map(r => lignes.filter(l => l[1] === r).length);
+    return { c, archers: lignes.length, med, podiums: med[0] + med[1] + med[2] };
+  });
+  const totalPodiums = stats.reduce((a, x) => a + x.podiums, 0);
+  const totalArchers = stats.reduce((a, x) => a + x.archers, 0);
+  const libelle = (n, un, plusieurs) => n + " " + (n > 1 ? plusieurs : un);
+  return pages(stats, 5).map((page, i, tout) => {
+    const lignes = page.map(x => `
+      <div class="lc">
+        <div><strong>${esc(x.c.nom)}</strong><span>${esc(x.c.format)}, ${esc(x.c.dates)}</span></div>
+        <div class="stat"><em>${x.archers}</em><small>${x.archers > 1 ? "archers" : "archer"}</small></div>
+        <div class="stat"><em>${x.podiums}</em><small>${x.podiums > 1 ? "podiums" : "podium"}</small></div>
+        <div class="med" title="1res, 2es et 3es places">
+          ${x.med.map((n, k) => `<span class="rang r${k + 1} ${n ? "" : "zero"}">${n}</span>`).join("")}
+        </div>
+      </div>`).join("");
+    const bas = tout.length > 1 ? `page ${i + 1} sur ${tout.length}` : libelle(totalArchers, "archer du club", "archers du club");
+    return section("", `${entete(titre, libelle(totalPodiums, "podium", "podiums"), bas)}<div class="liste">${lignes}</div>`, "Classements officiels FFTA", i === 0);
+  });
+}
+
+function ecransConcours(c) {
   const out = [];
-  if (concours.length) {
-    const stats = concours.map(c => {
-      const lignes = c.groupes.flatMap(g => g.lignes);
-      const med = [1, 2, 3].map(r => lignes.filter(l => l[1] === r).length);
-      return { c, archers: lignes.length, med, podiums: med[0] + med[1] + med[2] };
-    });
-    const totalPodiums = stats.reduce((a, x) => a + x.podiums, 0);
-    const totalArchers = stats.reduce((a, x) => a + x.archers, 0);
-    const libelle = (n, un, plusieurs) => n + " " + (n > 1 ? plusieurs : un);
-    pages(stats, 5).forEach((page, i, tout) => {
-      const lignes = page.map(x => `
-        <div class="lc">
-          <div><strong>${esc(x.c.nom)}</strong><span>${esc(x.c.format)}, ${esc(x.c.dates)}</span></div>
-          <div class="stat"><em>${x.archers}</em><small>${x.archers > 1 ? "archers" : "archer"}</small></div>
-          <div class="stat"><em>${x.podiums}</em><small>${x.podiums > 1 ? "podiums" : "podium"}</small></div>
-          <div class="med" title="1res, 2es et 3es places">
-            ${x.med.map((n, k) => `<span class="rang r${k + 1} ${n ? "" : "zero"}">${n}</span>`).join("")}
-          </div>
+  const toutes = c.groupes.flatMap(g => g.lignes.map(l => ({ nom: l[0], score: l[2], arc: g.arc })));
+  const meilleurs = ["poulies", "classique", "nu"].map(a => {
+    const l = toutes.filter(x => x.arc === a).sort((x, y) => y.score - x.score)[0];
+    return l ? { arc: NOMS_ARC[a], nom: l.nom, score: l.score } : null;
+  }).filter(Boolean);
+  out.push(section("ouverture", `
+    ${cible()}
+    <p class="club">${esc(CFG.CLUB_LABEL)}</p>
+    <h1>${esc(c.nom)}</h1>
+    <p class="concours">${esc(c.format)}</p>
+    <p class="dates">${esc(c.dates)}</p>
+    <div class="chiffres">
+      <div><strong>${toutes.length}</strong><span>archers du club</span></div>
+      ${c.totalArchers ? `<div><strong>${c.totalArchers}</strong><span>archers au total</span></div>` : ""}
+    </div>
+    <div class="meilleurs">${meilleurs.map(m => `<div class="m"><i>${esc(m.arc)}</i><span>${formatNom(m.nom)}</span><em>${m.score}</em></div>`).join("")}</div>`,
+    c.source, true));
+  [["classique"], ["poulies", "nu"]].forEach(arcs => {
+    const blocs = c.groupes.filter(g => arcs.includes(g.arc));
+    if (!blocs.length) return;
+    const cols = arcs[0] === "classique" ? 2 : 3;
+    decouper(blocs, cols).forEach(page => {
+      const titre = [...new Set(page.map(g => g.arc))].map(a => NOMS_ARC[a]).join(" et ");
+      const html = page.map(g => `
+        <div class="bloc ${g.arc}"><h3>${esc(g.titre)}</h3>
+        ${g.lignes.map(([n, r, sc]) => `<div class="ligne"><span class="rang ${r <= 3 ? "r" + r : ""}">${rang(r)}</span><span class="nom">${formatNom(n)}</span><span class="score">${sc}</span></div>`).join("")}
         </div>`).join("");
-      const bas = tout.length > 1 ? `page ${i + 1} sur ${tout.length}` : libelle(totalArchers, "archer du club", "archers du club");
-      out.push(section("", `${entete("Les concours du week-end", libelle(totalPodiums, "podium", "podiums"), bas)}<div class="liste">${lignes}</div>`, "Classements officiels FFTA", i === 0));
+      out.push(section("", `${entete(titre, c.nom, c.dates)}<div class="grille c${cols}">${html}</div>`, c.source, false));
     });
-  }
-  concours.forEach(c => {
-    const toutes = c.groupes.flatMap(g => g.lignes.map(l => ({ nom: l[0], score: l[2], arc: g.arc })));
-    const meilleurs = ["poulies", "classique", "nu"].map(a => {
-      const l = toutes.filter(x => x.arc === a).sort((x, y) => y.score - x.score)[0];
-      return l ? { arc: NOMS_ARC[a], nom: l.nom, score: l.score } : null;
-    }).filter(Boolean);
-    out.push(section("ouverture", `
-      ${cible()}
-      <p class="club">${esc(CFG.CLUB_LABEL)}</p>
-      <h1>${esc(c.nom)}</h1>
-      <p class="concours">${esc(c.format)}</p>
-      <p class="dates">${esc(c.dates)}</p>
-      <div class="chiffres">
-        <div><strong>${toutes.length}</strong><span>archers du club</span></div>
-        ${c.totalArchers ? `<div><strong>${c.totalArchers}</strong><span>archers au total</span></div>` : ""}
-      </div>
-      <div class="meilleurs">${meilleurs.map(m => `<div class="m"><i>${esc(m.arc)}</i><span>${formatNom(m.nom)}</span><em>${m.score}</em></div>`).join("")}</div>`,
-      c.source, true));
-    [["classique"], ["poulies", "nu"]].forEach(arcs => {
-      const blocs = c.groupes.filter(g => arcs.includes(g.arc));
-      if (!blocs.length) return;
-      const cols = arcs[0] === "classique" ? 2 : 3;
-      decouper(blocs, cols).forEach(page => {
-        const titre = [...new Set(page.map(g => g.arc))].map(a => NOMS_ARC[a]).join(" et ");
-        const html = page.map(g => `
-          <div class="bloc ${g.arc}"><h3>${esc(g.titre)}</h3>
-          ${g.lignes.map(([n, r, sc]) => `<div class="ligne"><span class="rang ${r <= 3 ? "r" + r : ""}">${rang(r)}</span><span class="nom">${formatNom(n)}</span><span class="score">${sc}</span></div>`).join("")}
-          </div>`).join("");
-        out.push(section("", `${entete(titre, c.nom, c.dates)}<div class="grille c${cols}">${html}</div>`, c.source, false));
-      });
-    });
+  });
+  return out;
+}
+
+function ecransResultats(donnees) {
+  const auj = aujourdhui();
+  const debut = plusJours(auj, -CFG.MAX_JOURS);                          /* on ignore ce qui est trop ancien (trêve estivale) */
+  const dedans = ((donnees && donnees.concours) || [])
+    .map(c => ({ c, fin: lireDate(c.fin) }))
+    .filter(x => x.fin && x.fin >= debut && x.fin <= auj);
+  const parWeekend = new Map();
+  dedans.forEach(x => {
+    const cle = +samediDe(x.fin);
+    if (!parWeekend.has(cle)) parWeekend.set(cle, []);
+    parWeekend.get(cle).push(x.c);
+  });
+  const out = [];
+  [...parWeekend.keys()].sort((a, b) => b - a).slice(0, CFG.NB_WEEKENDS).forEach((cle, i) => {
+    const liste = parWeekend.get(cle).sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
+    out.push(...ecransRecap("Week-end du " + libelleWeekend(new Date(cle)), liste));
+    if (i < CFG.DETAIL_WEEKENDS) liste.forEach(c => out.push(...ecransConcours(c)));
   });
   return out;
 }
