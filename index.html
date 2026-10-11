@@ -99,6 +99,37 @@
   .lc .med .rang { color: inherit; }
   .lc .med .rang.zero { background: none; border-color: var(--trait); color: var(--texte-doux); }
 
+  /* ---------- Une page par concours ---------- */
+  .titre-concours h2 { margin: 0; }
+  .sous { margin: .6rem 0 0; font-size: 1.7rem; color: var(--texte-doux); }
+  .bandeau { display: flex; align-items: center; gap: 3rem; }
+  .bandeau .stat { display: flex; flex-direction: column; align-items: center; }
+  .bandeau .stat em { font-style: normal; font-family: var(--titre); font-weight: 700; font-size: 5.4rem; line-height: 1; }
+  .bandeau .stat small { font-size: 1.5rem; color: var(--texte-doux); }
+  .bandeau .med { display: flex; gap: .6rem; }
+  .bandeau .med .rang.zero { background: none; border-color: var(--trait); color: var(--texte-doux); }
+  .liste-archers { flex: 1; display: grid; grid-auto-flow: column; grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    grid-template-rows: repeat(var(--rows), auto); column-gap: 3rem; align-content: start; }
+  .ar { display: grid; grid-template-columns: 3.6rem minmax(0, 1fr) auto auto; align-items: center; gap: 1rem;
+    border-top: 1px solid var(--trait); border-left: .35rem solid var(--bleu); padding-left: 1.1rem; }
+  .ar.classique, .legende i.classique { border-left-color: var(--bleu); }
+  .ar.poulies, .legende i.poulies { border-left-color: var(--rouge); }
+  .ar.nu, .legende i.nu { border-left-color: var(--or); }
+  .ar.droit, .legende i.droit { border-left-color: var(--argent); }
+  .ar.autre, .legende i.autre { border-left-color: var(--bronze); }
+  .ar .cat { color: var(--texte-doux); white-space: nowrap; }
+  .ar .nom { font-weight: 500; }
+  .liste-archers.grand .ar { padding-top: .8rem; padding-bottom: .8rem; }
+  .liste-archers.grand .nom { font-size: 2.4rem; } .liste-archers.grand .cat { font-size: 1.6rem; } .liste-archers.grand .score { font-size: 3.4rem; }
+  .liste-archers.moyen .ar { padding-top: .45rem; padding-bottom: .45rem; }
+  .liste-archers.moyen .nom { font-size: 1.9rem; } .liste-archers.moyen .cat { font-size: 1.3rem; } .liste-archers.moyen .score { font-size: 2.6rem; }
+  .liste-archers.compact .ar { padding-top: .3rem; padding-bottom: .3rem; gap: .8rem; }
+  .liste-archers.compact .nom { font-size: 1.6rem; } .liste-archers.compact .cat { font-size: 1.15rem; } .liste-archers.compact .score { font-size: 2.3rem; }
+  .liste-archers.compact .rang { height: 2.4rem; line-height: 2.4rem; width: 2.9rem; font-size: 1.4rem; }
+  .legende { display: flex; flex-wrap: wrap; gap: 2.2rem; margin-top: 1.2rem; font-size: 1.3rem; color: var(--texte-doux); }
+  .legende span { display: inline-flex; align-items: center; gap: .7rem; }
+  .legende i { display: inline-block; width: .35rem; height: 1.4rem; background: none; border-left: .35rem solid var(--bleu); }
+
   /* ---------- Événements à venir ---------- */
   .evt { display: grid; grid-template-columns: 10rem 1fr auto; align-items: center; gap: 2.4rem; background: var(--fond-2); border-left: .5rem solid var(--bleu); padding: 1.3rem 2.2rem; }
   .evt .date { text-align: center; font-family: var(--titre); line-height: 1; }
@@ -154,6 +185,8 @@
     .entete h2 { font-size: 3.4rem; white-space: normal; }
     .entete .qui { text-align: left; }
     .grille.c2, .grille.c3 { grid-template-columns: 1fr; }
+    .liste-archers { grid-auto-flow: row; grid-template-columns: 1fr; grid-template-rows: none; }
+    .bandeau { flex-wrap: wrap; gap: 1.6rem; }
     .lc { grid-template-columns: 1fr 1fr; }
     .lc > div:first-child { grid-column: 1 / -1; }
     .lc .med { justify-content: flex-start; }
@@ -177,7 +210,7 @@
 <script>
 const CFG = Object.assign({
   CLUB_NOM: "Archers de l'Erdre", CLUB_LABEL: "Archers de l'Erdre, résultats du week-end",
-  DUREE_SECONDES: 14, RECHARGE_MINUTES: 15, NB_WEEKENDS: 3, DETAIL_WEEKENDS: 1, MAX_JOURS: 45,
+  DUREE_SECONDES: 14, RECHARGE_MINUTES: 15, NB_WEEKENDS: 3, MAX_JOURS: 45, ARCHERS_PAR_PAGE: 24,
   SHEET_EVENEMENTS_CSV: "", SHEET_INDISPOS_CSV: "", ORDRE: ["resultats", "indispos", "evenements"]
 }, window.CONFIG || {});
 
@@ -278,69 +311,36 @@ function entete(titre, haut, bas) {
 /* ----- week-ends : un week-end = le samedi et le dimanche ----- */
 function plusJours(d, n) { const r = new Date(d.getFullYear(), d.getMonth(), d.getDate()); r.setDate(r.getDate() + n); return r; }
 function samediDe(d) { return plusJours(d, -((d.getDay() + 1) % 7)); }   /* samedi le plus récent avant ou égal à d */
-function libelleWeekend(sam) {
-  const dim = plusJours(sam, 1);
-  const jm = x => fmt(x, { day: "numeric", month: "long" });
-  return sam.getMonth() === dim.getMonth() ? `${sam.getDate()} et ${jm(dim)}` : `${jm(sam)} au ${jm(dim)}`;
-}
 
-function ecransRecap(titre, concours) {
-  const stats = concours.map(c => {
-    const lignes = c.groupes.flatMap(g => g.lignes);
-    const med = [1, 2, 3].map(r => lignes.filter(l => l[1] === r).length);
-    return { c, archers: lignes.length, med, podiums: med[0] + med[1] + med[2] };
-  });
-  const totalPodiums = stats.reduce((a, x) => a + x.podiums, 0);
-  const totalArchers = stats.reduce((a, x) => a + x.archers, 0);
+/* Une page par concours : nombre d'archers et de podiums en titre, puis les archers du club */
+function ecransConcours(c, debutGroupe) {
+  const lignes = c.groupes.flatMap(g => g.lignes.map(([nom, r, sc]) => ({ nom, r, sc, cat: g.titre, arc: g.arc })));
+  lignes.sort((a, b) => a.r - b.r || b.sc - a.sc || a.nom.localeCompare(b.nom, "fr"));
+  const med = [1, 2, 3].map(r => lignes.filter(l => l.r === r).length);
+  const podiums = med[0] + med[1] + med[2];
   const libelle = (n, un, plusieurs) => n + " " + (n > 1 ? plusieurs : un);
-  return pages(stats, 5).map((page, i, tout) => {
-    const lignes = page.map(x => `
-      <div class="lc">
-        <div><strong>${esc(x.c.nom)}</strong><span>${esc(x.c.format)}, ${esc(x.c.dates)}</span></div>
-        <div class="stat"><em>${x.archers}</em><small>${x.archers > 1 ? "archers" : "archer"}</small></div>
-        <div class="stat"><em>${x.podiums}</em><small>${x.podiums > 1 ? "podiums" : "podium"}</small></div>
-        <div class="med" title="1res, 2es et 3es places">
-          ${x.med.map((n, k) => `<span class="rang r${k + 1} ${n ? "" : "zero"}">${n}</span>`).join("")}
+  const nbPages = Math.ceil(lignes.length / CFG.ARCHERS_PAR_PAGE);        /* au-delà : le concours passe sur 2 pages (ou plus) */
+  return pages(lignes, Math.ceil(lignes.length / nbPages)).map((page, i, tout) => {
+    const n = page.length;
+    const cols = n <= 3 ? 1 : 2;
+    const taille = n <= 6 ? "grand" : "moyen";
+    const rows = Math.ceil(n / cols);
+    const arcs = [...new Set(lignes.map(l => l.arc))];
+    const html = `
+      <div class="entete">
+        <div class="titre-concours"><h2>${esc(c.nom)}</h2><p class="sous">${esc(c.format)}, ${esc(c.dates)}${tout.length > 1 ? `, page ${i + 1} sur ${tout.length}` : ""}</p></div>
+        <div class="bandeau">
+          <div class="stat"><em>${lignes.length}</em><small>${lignes.length > 1 ? "archers du club" : "archer du club"}</small></div>
+          <div class="stat"><em>${podiums}</em><small>${podiums > 1 ? "podiums" : "podium"}</small></div>
+          <div class="med" title="1res, 2es et 3es places">${med.map((k, j) => `<span class="rang r${j + 1} ${k ? "" : "zero"}">${k}</span>`).join("")}</div>
         </div>
-      </div>`).join("");
-    const bas = tout.length > 1 ? `page ${i + 1} sur ${tout.length}` : libelle(totalArchers, "archer du club", "archers du club");
-    return section("", `${entete(titre, libelle(totalPodiums, "podium", "podiums"), bas)}<div class="liste">${lignes}</div>`, "Classements officiels FFTA", i === 0);
+      </div>
+      <div class="liste-archers ${taille}" style="--cols:${cols};--rows:${rows}">
+        ${page.map(l => `<div class="ar ${l.arc}"><span class="rang ${l.r <= 3 ? "r" + l.r : ""}">${rang(l.r)}</span><span class="nom">${formatNom(l.nom)}</span><span class="cat">${esc(l.cat)}</span><span class="score">${l.sc}</span></div>`).join("")}
+      </div>
+      <div class="legende">${arcs.map(a => `<span><i class="${a}"></i>${esc(NOMS_ARC[a])}</span>`).join("")}</div>`;
+    return section("", html, c.source, debutGroupe && i === 0);
   });
-}
-
-function ecransConcours(c) {
-  const out = [];
-  const toutes = c.groupes.flatMap(g => g.lignes.map(l => ({ nom: l[0], score: l[2], arc: g.arc })));
-  const meilleurs = ["poulies", "classique", "nu", "droit"].map(a => {
-    const l = toutes.filter(x => x.arc === a).sort((x, y) => y.score - x.score)[0];
-    return l ? { arc: NOMS_ARC[a], nom: l.nom, score: l.score } : null;
-  }).filter(Boolean);
-  out.push(section("ouverture", `
-    ${cible()}
-    <p class="club">${esc(CFG.CLUB_LABEL)}</p>
-    <h1>${esc(c.nom)}</h1>
-    <p class="concours">${esc(c.format)}</p>
-    <p class="dates">${esc(c.dates)}</p>
-    <div class="chiffres">
-      <div><strong>${toutes.length}</strong><span>archers du club</span></div>
-      ${c.totalArchers ? `<div><strong>${c.totalArchers}</strong><span>archers au total</span></div>` : ""}
-    </div>
-    <div class="meilleurs">${meilleurs.map(m => `<div class="m"><i>${esc(m.arc)}</i><span>${formatNom(m.nom)}</span><em>${m.score}</em></div>`).join("")}</div>`,
-    c.source, true));
-  [["classique"], ["poulies", "nu", "droit", "autre"]].forEach(arcs => {
-    const blocs = c.groupes.filter(g => arcs.includes(g.arc));
-    if (!blocs.length) return;
-    const cols = arcs[0] === "classique" ? 2 : 3;
-    decouper(blocs, cols).forEach(page => {
-      const titre = [...new Set(page.map(g => g.arc))].map(a => NOMS_ARC[a]).join(" et ");
-      const html = page.map(g => `
-        <div class="bloc ${g.arc}"><h3>${esc(g.titre)}</h3>
-        ${g.lignes.map(([n, r, sc]) => `<div class="ligne"><span class="rang ${r <= 3 ? "r" + r : ""}">${rang(r)}</span><span class="nom">${formatNom(n)}</span><span class="score">${sc}</span></div>`).join("")}
-        </div>`).join("");
-      out.push(section("", `${entete(titre, c.nom, c.dates)}<div class="grille c${cols}">${html}</div>`, c.source, false));
-    });
-  });
-  return out;
 }
 
 function ecransResultats(donnees) {
@@ -355,11 +355,10 @@ function ecransResultats(donnees) {
     if (!parWeekend.has(cle)) parWeekend.set(cle, []);
     parWeekend.get(cle).push(x.c);
   });
+  const nb = c => c.groupes.reduce((a, g) => a + g.lignes.length, 0);
   const out = [];
-  [...parWeekend.keys()].sort((a, b) => b - a).slice(0, CFG.NB_WEEKENDS).forEach((cle, i) => {
-    const liste = parWeekend.get(cle).sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
-    out.push(...ecransRecap("Week-end du " + libelleWeekend(new Date(cle)), liste));
-    if (i < CFG.DETAIL_WEEKENDS) liste.forEach(c => out.push(...ecransConcours(c)));
+  [...parWeekend.keys()].sort((a, b) => b - a).slice(0, CFG.NB_WEEKENDS).forEach(cle => {
+    parWeekend.get(cle).sort((a, b) => nb(b) - nb(a)).forEach((c, i) => out.push(...ecransConcours(c, i === 0)));
   });
   return out;
 }
