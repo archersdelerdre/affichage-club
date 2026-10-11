@@ -2,7 +2,7 @@
 window.CONFIG = {
   CLUB_NOM: "Archers de l'Erdre",
   CLUB_LABEL: "Archers de l'Erdre, résultats du week-end",
-  DUREE_SECONDES: 14,          // durée d'un écran
+  DUREE_SECONDES: 5,          // durée d'un écran
   RECHARGE_MINUTES: 15,        // la page relit les données toutes les 15 minutes
 
   /* Liens CSV de Google Sheets (Fichier > Partager > Publier sur le Web > un onglet > CSV).
