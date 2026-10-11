@@ -28,7 +28,8 @@ vérifies que tout marche avant de passer à la suite.
   faire et attends son accord.
 - Lis `AGENTS.md` à la racine avant tout : il décrit le projet, son architecture et ses règles. Respecte-le.
 - **La branche `main`, c'est la production** : tout ce qui arrive sur `main` s'affiche sur la télé du club quelques
-  minutes après (GitHub Pages). **Ne jamais** pousser sur `main` ni fusionner une pull request : seul Jonas le fait.
+  minutes après (GitHub Pages). **Ne jamais** pousser sur `main` ni fusionner une pull request : seul le responsable
+  du dépôt le fait.
   Le travail s'arrête à la pull request.
 - **Ne jamais** committer les changements de `data/resultats.json` ni de `data/vus.json` faits en local : ces
   fichiers sont mis à jour par le robot GitHub. Seule exception : l'idée change justement leur format.
@@ -43,7 +44,7 @@ Reformule-la en 2 ou 3 phrases et fais-la valider.
 
 Vérifie dans `AGENTS.md` qu'elle respecte les choix du projet : pas de npm, pas de framework, pas de bibliothèque JS
 externe, réglages dans `config.js`, page lisible de loin sur une télé 1920×1080. Si elle les contredit, dis-le
-simplement et propose d'en parler à Jonas avant de coder.
+simplement et propose d'en parler au responsable du dépôt avant de coder.
 
 Situe l'idée :
 
@@ -207,7 +208,7 @@ git push -u origin feature/<nom>
 gh pr create --repo archersdelerdre/affichage-club --base main --title "<titre>" --body "<description>"
 ```
 
-Écris la description **en français**, pour Jonas :
+Écris la description **en français**, pour le responsable du dépôt :
 
 ```markdown
 ## L'idée
@@ -223,9 +224,9 @@ Pourquoi ce changement, pour qui.
 ```
 
 Si elle a fait des captures d'écran, dis-lui de les glisser dans la pull request sur GitHub (donne-lui le lien). Puis
-explique : Jonas va relire et peut demander des changements. Quand elle revient avec ses remarques, fais les
-changements sur la même branche, refais les étapes 8 et 9, puis `git push` : la pull request se met à jour toute
-seule. Quand Jonas fusionne, le changement arrive sur la télé du club tout seul.
+explique : le responsable du dépôt va relire et peut demander des changements. Quand elle revient avec ses
+remarques, fais les changements sur la même branche, refais les étapes 8 et 9, puis `git push` : la pull request se
+met à jour toute seule. Quand il fusionne, le changement arrive sur la télé du club tout seul.
 
 ## Pour l'idée suivante
 
