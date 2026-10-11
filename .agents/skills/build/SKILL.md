@@ -105,9 +105,9 @@ toujours d'une branche neuve, basée sur la base à jour.
    enregistre-les sur cette branche (`git add -A` puis `git commit -m "Travail en cours"`), en vérifiant d'abord qu'il
    n'y a ni `.venv/`, ni PDF, ni `__pycache__/`, ni changement de `data/` fait en local. Dis-lui que son travail
    précédent est gardé sur son ancienne branche.
-3. Choisis un nom court, sans accent, d'après ce qu'elle veut faire : `idee/ecran-meteo`. S'il existe déjà, ajoute
+3. Choisis un nom court, sans accent, d'après ce qu'elle veut faire : `feature/ecran-meteo`. S'il existe déjà, ajoute
    `-2`.
-4. `git switch -c idee/<nom> upstream/main` (avec le nom réel de la base).
+4. `git switch -c feature/<nom> upstream/main` (avec le nom réel de la base).
 
 Explique-lui en une phrase : « J'ai créé une copie de travail toute neuve pour ton idée, à partir de la dernière
 version du club. »
@@ -203,7 +203,7 @@ Message de commit **en français**, court : une ligne de titre, puis une ou deux
 Demande-lui son accord, puis :
 
 ```bash
-git push -u origin idee/<nom>
+git push -u origin feature/<nom>
 gh pr create --repo archersdelerdre/affichage-club --base main --title "<titre>" --body "<description>"
 ```
 
