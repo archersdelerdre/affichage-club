@@ -11,6 +11,7 @@ Principe :
 Usage :
   python scraper/scrape.py                      # 9 derniers jours
   python scraper/scrape.py --debut 2026-10-10 --fin 2026-10-12
+  python scraper/scrape.py --debut 2026-01-01   # rattrapage de toute l'année (long : à lancer par tranches)
   python scraper/scrape.py --pdf resultats.pdf  # test sur un PDF local (affiche le JSON)
   python scraper/scrape.py --tout               # retélécharge aussi les PDF déjà vus
 
@@ -36,7 +37,6 @@ FICHIER = RACINE / "data" / "resultats.json"
 VUS = RACINE / "data" / "vus.json"
 
 CLUBS = [c.strip().upper() for c in os.environ.get("CLUBS", "CARQUEFOU").split(",") if c.strip()]
-JOURS_GARDES = 10
 LISTE_URL = "https://www.ffta.fr/competitions"
 HEADERS = {"User-Agent": "Mozilla/5.0 (affichage-club; usage associatif, 1 passage par jour)"}
 MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet",
@@ -209,7 +209,16 @@ def lire_pdf(contenu):
 
 
 # ----------------------------------------------------------------- liste des compétitions
-def lister_pdfs(debut, fin):
+def fenetres(debut, fin, pas=14):
+    """Découpe une longue période en tranches de 14 jours (la liste FFTA est paginée)."""
+    d, f = dt.date.fromisoformat(debut), dt.date.fromisoformat(fin)
+    while d <= f:
+        e = min(d + dt.timedelta(days=pas - 1), f)
+        yield d.isoformat(), e.isoformat()
+        d = e + dt.timedelta(days=1)
+
+
+def lister_fenetre(debut, fin):
     liens, epreuves_vues = [], set()
     for page in range(60):
         r = requests.get(LISTE_URL, headers=HEADERS, timeout=30, params={
@@ -231,12 +240,31 @@ def lister_pdfs(debut, fin):
     return liens
 
 
+def lister_pdfs(debut, fin):
+    liens = []
+    for d, f in fenetres(debut, fin):
+        trouves = lister_fenetre(d, f)
+        print(f"  {d} -> {f} : {len(trouves)} PDF")
+        liens += [u for u in trouves if u not in liens]
+    return liens
+
+
 # ----------------------------------------------------------------- programme principal
 def charger(chemin, defaut):
     try:
         return json.loads(chemin.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError):
         return defaut
+
+
+def sauver(par_id, vus):
+    """Écrit tout l'historique des concours (rien n'est effacé)."""
+    concours = sorted(par_id.values(), key=lambda c: c["fin"], reverse=True)
+    FICHIER.parent.mkdir(exist_ok=True)
+    FICHIER.write_text(json.dumps({"maj": dt.date.today().isoformat(), "concours": concours},
+                                  ensure_ascii=False, indent=1), encoding="utf-8")
+    VUS.write_text(json.dumps(sorted(vus), indent=1), encoding="utf-8")
+    return len(concours)
 
 
 def main():
@@ -262,10 +290,9 @@ def main():
     par_id = {c["id"]: c for c in donnees.get("concours", [])}
 
     liens = lister_pdfs(debut, fin)
-    print(f"{len(liens)} PDF de résultats publiés sur la période")
-    for url in liens:
-        if url in vus:
-            continue
+    a_faire = [u for u in liens if u not in vus]
+    print(f"{len(liens)} PDF de résultats publiés, {len(a_faire)} à lire")
+    for n, url in enumerate(a_faire, start=1):
         try:
             r = requests.get(url, headers=HEADERS, timeout=90)
             r.raise_for_status()
@@ -278,14 +305,12 @@ def main():
             res["id"] = url
             par_id[url] = res
             print(f"  + {res['nom']} ({res['dates']}) : {sum(len(g['lignes']) for g in res['groupes'])} archers du club")
+        if n % 25 == 0:                              # sauvegarde régulière pour les longs rattrapages
+            sauver(par_id, vus)
+            print(f"  ... {n}/{len(a_faire)}")
         time.sleep(0.5)
 
-    limite = (aujourdhui - dt.timedelta(days=JOURS_GARDES)).isoformat()
-    concours = sorted((c for c in par_id.values() if c["fin"] >= limite), key=lambda c: c["fin"], reverse=True)
-    FICHIER.parent.mkdir(exist_ok=True)
-    FICHIER.write_text(json.dumps({"maj": aujourdhui.isoformat(), "concours": concours}, ensure_ascii=False, indent=1), encoding="utf-8")
-    VUS.write_text(json.dumps(sorted(vus), indent=1), encoding="utf-8")
-    print(f"{len(concours)} concours dans data/resultats.json")
+    print(f"{sauver(par_id, vus)} concours avec des archers du club dans data/resultats.json")
 
 
 if __name__ == "__main__":
