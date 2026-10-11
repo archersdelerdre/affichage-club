@@ -1,7 +1,16 @@
 name: Résultats FFTA
 
 on:
-  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1-4"      # du lundi au jeudi à 6h UTC : les PDF sortent parfois plusieurs jours après
+  workflow_dispatch:            # bouton « Run workflow » pour lancer à la main
+    inputs:
+      depuis:
+        description: "Début de période AAAA-MM-JJ (vide = les 9 derniers jours)"
+        required: false
+      jusqua:
+        description: "Fin de période AAAA-MM-JJ (vide = aujourd'hui)"
+        required: false
 
 permissions:
   contents: write
@@ -9,6 +18,7 @@ permissions:
 jobs:
   recuperer:
     runs-on: ubuntu-latest
+    timeout-minutes: 340
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -17,12 +27,15 @@ jobs:
           cache: pip
           cache-dependency-path: scraper/requirements.txt
       - run: pip install -r scraper/requirements.txt
-      - run: python scraper/scrape.py
+      - run: python scraper/scrape.py --debut "$DEBUT" --fin "$FIN"
         env:
           CLUBS: "CARQUEFOU"
+          DEBUT: ${{ inputs.depuis }}
+          FIN: ${{ inputs.jusqua }}
       - name: Enregistrer les nouveaux résultats
+        if: always()
         run: |
           git config user.name "affichage-club"
           git config user.email "actions@users.noreply.github.com"
           git add data
-          git diff --cached --quiet || (git commit -m "Résultats mis à jour" && git push)
+          git diff --cached --quiet || (git commit -m "Résultats mis à jour" && git pull --rebase && git push)
