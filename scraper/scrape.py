@@ -45,7 +45,8 @@ PETITS = {"a", "à", "au", "aux", "de", "des", "du", "la", "le", "les", "sur", "
 ACCENTS_MAJ = "ÀÂÄÉÈÊËÎÏÔÖÙÛÜÇ"
 
 # rang, « nom + club », licence, catégorie, puis tous les nombres (manches, total, nb de 10/9 ou 6/5)
-LIGNE_RESULTAT = re.compile(r"^(\d+)\s+(.+?)\s+(\d{7}[A-Z])\s+(\S+)((?:\s+\d+)+)\s*$")
+# (le club et la licence sont parfois collés dans le PDF : « MONTLOUIS-SURLOIRE0421335Y »)
+LIGNE_RESULTAT = re.compile(r"^(\d+)\s+(.+?)\s*(\d{7}[A-Z])\s+(\S+)((?:\s+\d+)+)\s*$")
 
 # Corrections de noms à la main : data/corrections.json  {"Raphaêl SEROC": "Raphaël SEROC"}
 try:
@@ -60,7 +61,9 @@ def joli(texte):
     mots = []
     for mot in texte.split():
         bas = mot.lower()
-        if bas in PETITS:
+        if mot in ("TIR", "ARC"):
+            mots.append(mot.capitalize())
+        elif bas in PETITS:
             mots.append(bas)
         elif any(c.isdigit() for c in mot) or (len(mot) <= 3 and mot.isupper()):
             mots.append(mot.upper())
@@ -162,16 +165,21 @@ def lire_pdf(contenu):
         r = LIGNE_RESULTAT.match(" ".join(tampon + [ligne]))
         if r:
             nombres = [int(x) for x in re.findall(r"\d+", r.group(5))]
-            if courant is not None and len(nombres) > manches:
+            if courant is not None and nombres:
                 reste = r.group(2)
                 club = next((c for c in CLUBS if reste.upper().endswith(c)), None)
                 nom = reste[: -len(club)].strip() if club else reste
-                extra = nombres[manches + 1:]
+                # Les manches vides ne laissent aucun nombre dans le texte : on ne peut pas compter les colonnes.
+                # Le total est le plus grand des (manches + 1) premiers nombres (il est >= à chaque manche).
+                fenetre = nombres[: manches + 1]
+                total_ligne = max(fenetre)
+                pos = max(i for i, v in enumerate(fenetre) if v == total_ligne)
+                extra = nombres[pos + 1:]
                 if len(extra) >= 2:
                     nb_haut, nb_bas = extra[0], extra[1]
                 else:                                 # une seule valeur : on la compte comme 2e colonne
                     nb_haut, nb_bas = 0, (extra[0] if extra else 0)
-                dernier = {"licence": r.group(3), "total": nombres[manches],
+                dernier = {"licence": r.group(3), "total": total_ligne,
                            "nb10": nb_haut, "nb9": nb_bas, "club": club, "nom": nom}
                 groupes.setdefault(courant, []).append(dernier)
             tampon = []
