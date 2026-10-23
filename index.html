@@ -1,215 +1,236 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Écran du club</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    box-sizing: border-box;
-    --fond: #0f2236;
-    --fond-2: #162f49;
-    --trait: #2a4764;
-    --texte: #f4f1e8;
-    --texte-doux: #a9bacb;
-    --or: #f2c230;
-    --rouge: #d9442f;
-    --bleu: #3b8bd1;
-    --argent: #c9d1da;
-    --bronze: #cd8b4a;
-    --titre: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
-    --corps: "Barlow", "Helvetica Neue", Arial, sans-serif;
-  }
-  html { height: 100%; font-size: max(9px, min(0.8333vw, 1.4815vh)); }
-  *, *::before, *::after { box-sizing: border-box; }
-  body {
-    margin: 0; height: 100%; overflow: hidden; cursor: none;
-    background: var(--fond); color: var(--texte);
-    font-family: var(--corps); font-size: 1.5rem;
-  }
-  #scene { position: relative; width: 100%; height: 100%; }
-  .slide {
-    position: absolute; inset: 0; padding: 3.5rem 5rem 6.5rem;
-    display: flex; flex-direction: column;
-    opacity: 0; visibility: hidden; transition: opacity .7s ease, visibility .7s;
-  }
-  .slide.actif { opacity: 1; visibility: visible; }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Écran du club</title>
+  <style>
+    :root {
+      --fond: #0f2236;
+      --fond-2: #162f49;
+      --trait: #2a4764;
+      --texte: #f4f1e8;
+      --texte-doux: #a9bacb;
+      --or: #f2c230;
+      --rouge: #d9442f;
+      --bleu: #3b8bd1;
+      --argent: #c9d1da;
+      --bronze: #cd8b4a;
+      --titre: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+      --corps: "Barlow", "Helvetica Neue", Arial, sans-serif;
+    }
 
-  /* ---------- En-tête commun ---------- */
-  .entete { display: flex; align-items: flex-end; justify-content: space-between; gap: 3rem; margin-bottom: 2.2rem; }
-  .entete h2 { font-family: var(--titre); font-weight: 700; font-size: 4.6rem; line-height: 1; margin: 0; letter-spacing: .01em; white-space: nowrap; }
-  .entete .qui { text-align: right; }
-  .entete .qui strong { display: block; font-family: var(--titre); font-weight: 600; font-size: 2.6rem; line-height: 1.05; color: var(--or); }
-  .entete .qui span { font-size: 1.5rem; color: var(--texte-doux); }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; }
+    body {
+      background: var(--fond); color: var(--texte);
+      font-family: var(--corps); font-size: 1.5rem; overflow: hidden; cursor: none;
+    }
+    #scene { position: relative; width: 100%; height: 100%; }
+    .slide {
+      position: absolute; inset: 0; padding: 3.5rem 5rem 6.5rem;
+      display: flex; flex-direction: column; opacity: 0; visibility: hidden;
+      transition: opacity .7s ease, visibility .7s;
+    }
+    .slide.actif { opacity: 1; visibility: visible; }
+    .entete {
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 3rem;
+      margin-bottom: 2.2rem;
+    }
+    .entete h2 {
+      margin: 0; font-family: var(--titre); font-weight: 700; font-size: 4.6rem; line-height: 1;
+      letter-spacing: .01em; white-space: nowrap;
+    }
+    .entete .qui { text-align: right; }
+    .entete .qui strong {
+      display: block; font-family: var(--titre); font-weight: 600; font-size: 2.6rem; line-height: 1.05; color: var(--or);
+    }
+    .entete .qui span { font-size: 1.5rem; color: var(--texte-doux); }
 
-  /* ---------- Résultats ---------- */
-  .grille { flex: 1; display: grid; gap: 2rem 2.5rem; align-content: start; }
-  .grille.c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .grille.c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .bloc { background: var(--fond-2); border-top: .3rem solid var(--bleu); padding: 1.4rem 1.8rem 1.2rem; }
-  .bloc.classique { border-top-color: var(--bleu); }
-  .bloc.poulies { border-top-color: var(--rouge); }
-  .bloc.nu { border-top-color: var(--or); }
-  .bloc.droit { border-top-color: var(--argent); }
-  .bloc.autre { border-top-color: var(--bronze); }
-  .bloc h3 { font-family: var(--titre); font-weight: 600; font-size: 2.3rem; margin: 0 0 .7rem; letter-spacing: .02em; }
-  .ligne { display: grid; grid-template-columns: 3.6rem 1fr auto; align-items: center; gap: 1.2rem; padding: .55rem 0; border-top: 1px solid var(--trait); }
-  .ligne:first-of-type { border-top: 0; }
-  .rang {
-    font-family: var(--titre); font-weight: 700; font-size: 1.7rem; line-height: 2.9rem; height: 3.2rem; width: 3.2rem; flex: none;
-    text-align: center; border-radius: 50%; color: var(--texte-doux); border: .15rem solid var(--trait);
-  }
-  .rang.r1 { background: var(--or); border-color: var(--or); color: #1b1500; }
-  .rang.r2 { background: var(--argent); border-color: var(--argent); color: #14202c; }
-  .rang.r3 { background: var(--bronze); border-color: var(--bronze); color: #1d1105; }
-  .nom { font-size: 1.9rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .nom b { font-weight: 600; }
-  .score { font-family: var(--titre); font-weight: 700; font-size: 2.6rem; font-variant-numeric: tabular-nums; }
+    .grille { flex: 1; display: grid; gap: 2rem 2.5rem; align-content: start; }
+    .grille.c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grille.c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .bloc { background: var(--fond-2); border-top: .3rem solid var(--bleu); padding: 1.4rem 1.8rem 1.2rem; }
+    .bloc.classique { border-top-color: var(--bleu); }
+    .bloc.poulies { border-top-color: var(--rouge); }
+    .bloc.nu { border-top-color: var(--or); }
+    .bloc.droit { border-top-color: var(--argent); }
+    .bloc.autre { border-top-color: var(--bronze); }
+    .bloc h3 {
+      margin: 0 0 .7rem; font-family: var(--titre); font-weight: 600; font-size: 2.3rem;
+      letter-spacing: .02em;
+    }
+    .ligne {
+      display: grid; grid-template-columns: 3.6rem 1fr auto; align-items: center; gap: 1.2rem;
+      padding: .55rem 0; border-top: 1px solid var(--trait);
+    }
+    .ligne:first-of-type { border-top: 0; }
+    .rang {
+      font-family: var(--titre); font-weight: 700; font-size: 1.7rem; line-height: 2.9rem;
+      height: 3.2rem; width: 3.2rem; text-align: center; border-radius: 50%;
+      color: var(--texte-doux); border: .15rem solid var(--trait);
+    }
+    .rang.r1 { background: var(--or); border-color: var(--or); color: #1b1500; }
+    .rang.r2 { background: var(--argent); border-color: var(--argent); color: #14202c; }
+    .rang.r3 { background: var(--bronze); border-color: var(--bronze); color: #1d1105; }
+    .nom { font-size: 1.9rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .score { font-family: var(--titre); font-weight: 700; font-size: 2.6rem; font-variant-numeric: tabular-nums; }
 
-  /* ---------- Ouverture d'un concours ---------- */
-  .ouverture { justify-content: center; padding-right: 48%; }
-  .club { font-family: var(--titre); font-weight: 600; font-size: 2rem; color: var(--or); letter-spacing: .04em; margin: 0 0 1.5rem; }
-  .ouverture h1 { font-family: var(--titre); font-weight: 700; font-size: 8.4rem; line-height: .95; margin: 0 0 2rem; }
-  .concours { font-size: 2.2rem; font-weight: 500; margin: 0; }
-  .dates { font-size: 2rem; color: var(--texte-doux); margin: .4rem 0 3rem; }
-  .chiffres { display: flex; gap: 4rem; margin-bottom: 3rem; }
-  .chiffres div { display: flex; flex-direction: column; }
-  .chiffres strong { font-family: var(--titre); font-size: 6.2rem; line-height: 1; font-weight: 700; }
-  .chiffres span { font-size: 1.6rem; color: var(--texte-doux); }
-  .meilleurs { border-top: 1px solid var(--trait); padding-top: 1.4rem; display: grid; gap: .5rem; max-width: 52rem; }
-  .meilleurs .m { display: grid; grid-template-columns: 15rem 1fr auto; align-items: baseline; gap: 1rem; font-size: 1.8rem; }
-  .meilleurs .m i { font-style: normal; color: var(--texte-doux); }
-  .meilleurs .m em { font-style: normal; font-family: var(--titre); font-weight: 700; font-size: 2.4rem; }
-  .cible { position: absolute; right: -14rem; top: 50%; width: 74rem; height: 74rem; transform: translateY(-50%); }
-  .cible circle.vise { animation: tombe 1.1s .5s cubic-bezier(.2,.8,.2,1) both; }
-  @keyframes tombe { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: scale(1); } }
+    .ouverture { justify-content: center; padding-right: 48%; }
+    .club { font-family: var(--titre); font-weight: 600; font-size: 2rem; color: var(--or); letter-spacing: .04em; margin: 0 0 1.5rem; }
+    .ouverture h1 { font-family: var(--titre); font-weight: 700; font-size: 8.4rem; line-height: .95; margin: 0 0 2rem; }
+    .concours { font-size: 2.2rem; font-weight: 500; margin: 0; }
+    .dates { font-size: 2rem; color: var(--texte-doux); margin: .4rem 0 3rem; }
+    .chiffres { display: flex; gap: 4rem; margin-bottom: 3rem; }
+    .chiffres div { display: flex; flex-direction: column; }
+    .chiffres strong { font-family: var(--titre); font-size: 6.2rem; line-height: 1; font-weight: 700; }
+    .chiffres span { font-size: 1.6rem; color: var(--texte-doux); }
+    .meilleurs { border-top: 1px solid var(--trait); padding-top: 1.4rem; display: grid; gap: .5rem; max-width: 52rem; }
+    .meilleurs .m { display: grid; grid-template-columns: 15rem 1fr auto; align-items: baseline; gap: 1rem; font-size: 1.8rem; }
+    .meilleurs .m i { font-style: normal; color: var(--texte-doux); }
+    .meilleurs .m em { font-style: normal; font-family: var(--titre); font-weight: 700; font-size: 2.4rem; }
 
-  /* ---------- Récapitulatif de plusieurs concours ---------- */
-  .liste { display: grid; gap: 1.4rem; align-content: start; }
-  .lc { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 2rem; background: var(--fond-2); border-left: .5rem solid var(--bleu); padding: 1.5rem 2.2rem; }
-  .lc strong { display: block; font-family: var(--titre); font-weight: 600; font-size: 3.4rem; line-height: 1.05; }
-  .lc span { font-size: 1.6rem; color: var(--texte-doux); }
-  .lc em { font-style: normal; font-family: var(--titre); font-weight: 700; font-size: 4.6rem; }
-  .lc small { font-size: 1.5rem; color: var(--texte-doux); }
-  .lc .stat { display: flex; flex-direction: column; align-items: center; min-width: 11rem; }
-  .lc .med { display: flex; gap: .6rem; min-width: 11.5rem; justify-content: flex-end; }
-  .lc .med .rang { color: inherit; }
-  .lc .med .rang.zero { background: none; border-color: var(--trait); color: var(--texte-doux); }
+    .evt-liste { display: grid; gap: 1.6rem; }
+    .evt {
+      display: grid; grid-template-columns: 10rem 1fr auto; align-items: center; gap: 2.4rem;
+      background: var(--fond-2); border-left: 1rem solid var(--bleu); padding: 1.3rem 2.2rem;
+    }
+    .evt .date { text-align: center; font-family: var(--titre); line-height: 1; }
+    .evt .jour { display: block; font-size: 5rem; font-weight: 700; }
+    .evt .mois { display: block; font-size: 1.9rem; color: var(--or); font-weight: 600; margin-top: .3rem; }
+    .evt h3 { font-family: var(--titre); font-weight: 600; font-size: 3rem; line-height: 1.05; margin: 0 0 .4rem; }
+    .evt p { margin: 0; font-size: 1.7rem; color: var(--texte-doux); }
+    .evt .heure { font-family: var(--titre); font-weight: 700; font-size: 2.6rem; color: var(--or); justify-self: end; }
 
-  /* ---------- Événements ---------- */
-  .evt-liste { display: grid; gap: 1.6rem; }
-  .evt { display: grid; grid-template-columns: 10rem 1fr auto; align-items: center; gap: 2.4rem; background: var(--fond-2); border-left: 1rem solid var(--bleu); padding: 1.3rem 2.2rem; }
-  .evt .date { text-align: center; font-family: var(--titre); line-height: 1; }
-  .evt .jour { display: block; font-size: 5rem; font-weight: 700; }
-  .evt .mois { display: block; font-size: 1.9rem; color: var(--or); font-weight: 600; margin-top: .3rem; }
-  .evt h3 { font-family: var(--titre); font-weight: 600; font-size: 3rem; line-height: 1.05; margin: 0 0 .4rem; }
-  .evt p { margin: 0; font-size: 1.7rem; color: var(--texte-doux); }
-  .evt .heure { font-family: var(--titre); font-weight: 700; font-size: 2.6rem; color: var(--or); justify-self: end; }
+    .vide { justify-content: center; align-items: center; text-align: center; }
+    .vide h2 { font-family: var(--titre); font-size: 5rem; margin: 0 0 1rem; }
+    .vide p { font-size: 2rem; color: var(--texte-doux); margin: 0; }
 
-  /* ---------- Indisponibilités ---------- */
-  .indispo { display: grid; gap: 1.8rem; }
-  .indispo .bloc { padding: 1.6rem 2rem; }
-  .indispo .ligne { grid-template-columns: 1fr auto; }
+    .pied {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      padding: 1.4rem 5rem 1.6rem; display: flex; justify-content: space-between; align-items: center;
+      font-size: 1.3rem; color: var(--texte-doux);
+    }
+    .points { display: flex; gap: .7rem; align-items: center; }
+    .points i { width: 1.1rem; height: 1.1rem; border-radius: 50%; background: var(--trait); transition: background .3s; }
+    .points i.actif { background: var(--or); }
+    .points i.debut { margin-left: 1.1rem; }
+    .points i.debut:first-child { margin-left: 0; }
+    .barre { position: absolute; left: 0; bottom: 0; height: .35rem; background: var(--or); width: 0; }
+    .barre.va { animation: avance var(--duree) linear forwards; }
+    @keyframes avance { from { width: 0; } to { width: 100%; } }
 
-  /* ---------- Footer ---------- */
-  .foot { position: absolute; left: 5rem; right: 5rem; bottom: 2.5rem; display: flex; justify-content: space-between; align-items: center; color: var(--texte-doux); font-size: 1.4rem; }
-</style>
+    @media (max-aspect-ratio: 1/1) {
+      html { font-size: max(9px, 2.6vw); }
+      body { cursor: auto; }
+      .slide { overflow-y: auto; padding: 2.5rem 2rem 7rem; }
+      .entete { flex-direction: column; align-items: flex-start; gap: 1rem; }
+      .entete h2 { font-size: 3.4rem; white-space: normal; }
+      .grille.c2, .grille.c3 { grid-template-columns: 1fr; }
+      .evt { grid-template-columns: 7rem 1fr; }
+      .evt .heure { grid-column: 2; }
+      .pied { padding: 1rem 2rem 1.2rem; background: var(--fond); }
+    }
+  </style>
 </head>
 <body>
   <div id="scene"></div>
+  <div class="pied"><span id="source"></span><div class="points" id="points"></div></div>
+  <div class="barre" id="barre"></div>
+
   <script src="config.js"></script>
   <script>
-    const CFG = window.CONFIG || {};
+    const CFG = Object.assign({
+      DUREE_SECONDES: 14,
+      RECHARGE_MINUTES: 15,
+      NB_WEEKENDS: 3,
+      MAX_JOURS: 45,
+      EVENEMENTS_HORIZON_JOURS: 10,
+      ORDRE: ["resultats", "evenements"],
+      SHEET_EVENEMENTS_CSV: "data/evenements.csv",
+      SHEET_INDISPOS_CSV: "",
+    }, window.CONFIG || {});
 
-    function aujourdhui() {
-      const d = new Date();
-      d.setHours(0, 0, 0, 0);
-      return d;
-    }
-
-    function plusJours(date, nb) {
-      const d = new Date(date);
-      d.setDate(d.getDate() + nb);
-      d.setHours(23, 59, 59, 999);
-      return d;
-    }
-
-    function lireDate(val) {
-      if (!val) return null;
-      if (val instanceof Date) return val;
-      if (typeof val === "string") {
-        const s = val.trim();
-        if (!s) return null;
-        const iso = s.match(/^\d{4}-\d{2}-\d{2}$/);
-        if (iso) return new Date(`${s}T00:00:00`);
-        const d = new Date(s);
-        if (!Number.isNaN(d.getTime())) return d;
-      }
-      return null;
-    }
+    const slides = [];
+    let courant = 0;
+    let minuterie = null;
+    let vue = [];
 
     function esc(v) {
       return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;");
     }
 
-    function fmt(date, opts) {
-      return new Intl.DateTimeFormat("fr-FR", opts).format(date);
+    function aujourdhui() {
+      const d = new Date(); d.setHours(0, 0, 0, 0); return d;
     }
 
-    function periode(d1, d2) {
-      const debut = new Date(d1);
-      const fin = new Date(d2);
-      const format = { day: "numeric", month: "short" };
-      return `${fmt(debut, format)} → ${fmt(fin, format)}`;
-    }
+    function plusJours(date, nb) { const d = new Date(date); d.setDate(d.getDate() + nb); d.setHours(23, 59, 59, 999); return d; }
 
-    function nettoyerDetails(v) {
-      if (!v) return "";
-      return String(v).replace(/\s*\n\s*/g, " ").replace(/\s+/g, " ").trim();
+    function lireDate(val) {
+      if (!val) return null;
+      if (val instanceof Date) return val;
+      const s = String(val).trim();
+      if (!s) return null;
+      const iso = s.match(/^\d{4}-\d{2}-\d{2}$/);
+      if (iso) return new Date(`${s}T00:00:00`);
+      const d = new Date(s);
+      return Number.isNaN(d.getTime()) ? null : d;
     }
 
     function pages(liste, parPage) {
-      const p = [];
-      for (let i = 0; i < liste.length; i += parPage) p.push(liste.slice(i, i + parPage));
-      return p;
+      const out = [];
+      for (let i = 0; i < liste.length; i += parPage) out.push(liste.slice(i, i + parPage));
+      return out;
     }
 
-    function ecransEvenements(lignes) {
-      const auj = aujourdhui();
-      const fin = plusJours(auj, Math.max(0, Number(CFG.EVENEMENTS_HORIZON_JOURS) || 0));
-
-      const evts = (lignes || []).map(l => {
-        const d1 = l.d1 instanceof Date ? l.d1 : (l.date_debut instanceof Date ? l.date_debut : lireDate(l.date_debut));
-        const d2 = l.d2 instanceof Date ? l.d2 : (l.date_fin instanceof Date ? l.date_fin : lireDate(l.date_fin));
-        const item = { ...l, d1, d2, heure: l.heure || (d1 ? formatHeure(d1) : ""), couleur: l.couleur || "#3b8bd1" };
-        return item;
-      })
-        .filter(e => {
-          if (!e.d1 || !e.titre) return false;
-          const finEvt = e.d2 || e.d1;
-          return e.d1 <= fin && finEvt >= auj;
-        })
-        .sort((a, b) => a.d1 - b.d1);
-
-      if (!evts.length) return [];
-
-      return pages(evts, 4).map((page, i, tout) => {
-        const html = page.map(e => {
-          const date = e.d1;
-          const couleur = e.couleur || "#3b8bd1";
-          const sous = [e.lieu, nettoyerDetails(e.details)].filter(Boolean).map(esc).join("<br>");
-          const multi = e.d2 && +e.d2 !== +date ? `<p>${esc(periode(date, e.d2))}</p>` : "";
-          return `<div class="evt" style="border-left-color:${couleur}; border-left-width: 1rem; border-left-style: solid;">
-            <div class="date"><span class="jour">${date.getDate()}</span><span class="mois">${esc(fmt(date, { month: "short" }))}</span></div>
-            <div><h3>${esc(e.titre)}</h3>${multi}<p>${sous}</p></div>
-            <div class="heure">${esc(e.heure || "")}</div></div>`;
-        }).join("");
-
-        return { html, nom: `Événements ${i + 1}/${tout.length}` };
+    function parseCSV(text) {
+      const lignes = [];
+      let courant = "";
+      let row = [];
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        const next = text[i + 1];
+        if (ch === '"') {
+          if (inQuotes && next === '"') { courant += '"'; i++; }
+          else { inQuotes = !inQuotes; }
+        } else if (ch === ',' && !inQuotes) {
+          row.push(courant); courant = "";
+        } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+          if (ch === '\r' && next === '\n') i++;
+          row.push(courant); courant = "";
+          if (row.some(v => v !== "")) lignes.push(row);
+          row = [];
+        } else {
+          courant += ch;
+        }
+      }
+      if (courant.length || row.length) {
+        row.push(courant);
+        if (row.some(v => v !== "")) lignes.push(row);
+      }
+      if (!lignes.length) return [];
+      const headers = lignes[0].map(h => String(h).trim().toLowerCase());
+      return lignes.slice(1).map(vals => {
+        const obj = {};
+        headers.forEach((h, index) => { obj[h] = (vals[index] ?? "").trim(); });
+        return obj;
       });
+    }
+
+    function fetchJSON(url) {
+      return fetch(url, { cache: "no-store" }).then(r => r.ok ? r.json() : { concours: [] });
+    }
+
+    function fetchCSV(url) {
+      if (!url) return Promise.resolve([]);
+      return fetch(url, { cache: "no-store" }).then(r => r.ok ? parseCSV(r.text ? "" : "") : []).catch(() => []);
+    }
+
+    async function lireEvenements() {
+      const url = CFG.SHEET_EVENEMENTS_CSV || "data/evenements.csv";
+      const text = await fetch(url, { cache: "no-store" }).then(r => r.ok ? r.text() : "");
+      return parseCSV(text);
     }
 
     function formatHeure(date) {
@@ -217,25 +238,184 @@
       return new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" }).format(date);
     }
 
-    function chargerJSON(url) {
-      return fetch(url).then(r => r.ok ? r.json() : []);
+    function periode(d1, d2) {
+      const debut = new Date(d1); const fin = new Date(d2);
+      const format = { day: "numeric", month: "short" };
+      return `${new Intl.DateTimeFormat("fr-FR", format).format(debut)} → ${new Intl.DateTimeFormat("fr-FR", format).format(fin)}`;
+    }
+
+    function nettoyerDetails(v) {
+      if (!v) return "";
+      return String(v).replace(/\s*\n\s*/g, " ").replace(/\s+/g, " ").trim();
+    }
+
+    function titreArc(arc) {
+      const map = { classique: "Classique", poulies: "Pouliés", nu: "Nu", droit: "Droit", autre: "Autre" };
+      return map[arc] || arc || "Autre";
+    }
+
+    function ecransResultats(data) {
+      const concours = Array.isArray(data && data.concours) ? data.concours : [];
+      const recents = concours
+        .filter(c => c && c.nom)
+        .sort((a, b) => (lireDate(b.fin) || new Date()) - (lireDate(a.fin) || new Date()))
+        .slice(0, CFG.NB_WEEKENDS || 3);
+
+      if (!recents.length) return [{ html: `<div class="slide actif"><div class="vide"><h2>Rien à afficher pour le moment</h2><p>Les résultats seront visibles ici.</p></div></div>`, nom: "Résultats" }];
+
+      return recents.map((concoursItem, index) => {
+        const groupes = Array.isArray(concoursItem.groupes) ? concoursItem.groupes : [];
+        const total = Number(concoursItem.totalArchers || 0);
+        const top = groupes.slice(0, 3).map(g => {
+          const lignes = Array.isArray(g.lignes) ? g.lignes : [];
+          const best = lignes[0] || [];
+          const nom = best[0] ? best[0] : "";
+          const rang = best[1] ? best[1] : "";
+          const score = best[2] ? best[2] : "";
+          return `<div class="m"><i>${esc(g.titre || titreArc(g.arc))}</i><em>${esc(String(score || "—"))}</em><strong>${esc(String(rang || ""))}</strong></div>`;
+        }).join("");
+
+        const html = `
+          <div class="slide ${index === 0 ? "actif" : ""}">
+            <div class="entete">
+              <h2>Résultats</h2>
+              <div class="qui"><strong>${esc(CFG.CLUB_NOM || "Club")}</strong><span>${esc(concoursItem.format || "Résultats")}</span></div>
+            </div>
+            <div class="ouverture slide-body">
+              <div class="club">${esc(CFG.CLUB_NOM || "Club")}</div>
+              <h1>${esc(concoursItem.nom || "Concours")}</h1>
+              <p class="concours">${esc(concoursItem.format || "")}</p>
+              <p class="dates">${esc(concoursItem.dates || "")}</p>
+              <div class="chiffres">
+                <div><strong>${esc(String(total || 0))}</strong><span>archers</span></div>
+                <div><strong>${esc(String((groupes || []).length || 0))}</strong><span>catégories</span></div>
+              </div>
+              <div class="meilleurs">${top || "<div class='m'><i>Classement</i><em>—</em><strong>—</strong></div>"}</div>
+            </div>
+          </div>`;
+        return { html, nom: concoursItem.nom || `Résultats ${index + 1}` };
+      });
+    }
+
+    function ecransEvenements(lignes) {
+      const auj = aujourdhui();
+      const fin = plusJours(auj, Math.max(0, Number(CFG.EVENEMENTS_HORIZON_JOURS) || 0));
+      const evts = (lignes || []).map(l => {
+        const d1 = lireDate(l.date_debut || l.d1);
+        const d2 = lireDate(l.date_fin || l.d2) || d1;
+        const item = {
+          ...l,
+          d1, d2,
+          heure: l.heure || (d1 ? formatHeure(d1) : ""),
+          couleur: l.couleur || "#3b8bd1",
+          titre: l.titre || "Événement",
+        };
+        return item;
+      }).filter(e => {
+        if (!e.d1 || !e.titre) return false;
+        const finEvt = e.d2 || e.d1;
+        return e.d1 <= fin && finEvt >= auj;
+      }).sort((a, b) => a.d1 - b.d1);
+
+      if (!evts.length) return [{ html: `<div class="slide actif"><div class="vide"><h2>Agenda vide</h2><p>Aucun événement à venir.</p></div></div>`, nom: "Agenda" }];
+
+      return pages(evts, 4).map((page, i, arr) => {
+        const html = page.map(e => {
+          const date = e.d1;
+          const couleur = e.couleur || "#3b8bd1";
+          const sous = [e.lieu, nettoyerDetails(e.details)].filter(Boolean).join(" • ");
+          const multi = e.d2 && +e.d2 !== +date ? `<p>${esc(periode(date, e.d2))}</p>` : "";
+          return `<div class="evt" style="border-left-color:${couleur}; border-left-width: 1rem; border-left-style: solid;">
+            <div class="date"><span class="jour">${esc(String(date.getDate()))}</span><span class="mois">${esc(new Intl.DateTimeFormat("fr-FR", { month: "short" }).format(date))}</span></div>
+            <div><h3>${esc(e.titre)}</h3>${multi}<p>${esc(sous)}</p></div>
+            <div class="heure">${esc(e.heure || "")}</div>
+          </div>`;
+        }).join("");
+
+        return { html: `<div class="slide ${i === 0 ? "actif" : ""}"><div class="entete"><h2>Agenda</h2></div><div class="evt-liste">${html}</div></div>`, nom: `Agenda ${i + 1}/${arr.length}` };
+      });
+    }
+
+    function installer(slidesList) {
+      vue = slidesList;
+      courant = 0;
+      renderSlide(vue[0]);
+      mettrePoints();
+      demarrerRotation();
     }
 
     function renderSlide(slide) {
       const scene = document.getElementById("scene");
-      if (!scene) return;
-      scene.innerHTML = slide;
+      if (!scene || !slide) return;
+      scene.innerHTML = slide.html;
+      const source = document.getElementById("source");
+      if (source) source.textContent = slide.nom || "";
+      const barre = document.getElementById("barre");
+      if (barre) {
+        barre.classList.remove("va");
+        void barre.offsetWidth;
+        barre.style.setProperty("--duree", `${CFG.DUREE_SECONDES}s`);
+        barre.classList.add("va");
+      }
+      mettrePoints();
     }
 
-    function init() {
-      const slides = [
-        { type: "evenements", title: "Agenda" }
-      ];
-      const page = slides[0];
-      renderSlide(`<div class="slide actif"><div class="entete"><h2>${page.title}</h2></div><div class="evt-liste">${ecransEvenements([]).map(s => s.html).join("")}</div></div>`);
+    function mettrePoints() {
+      const points = document.getElementById("points");
+      if (!points) return;
+      points.innerHTML = "";
+      vue.forEach((_, i) => {
+        const dot = document.createElement("i");
+        dot.className = i === courant ? "actif" : "";
+        if (i === 0) dot.classList.add("debut");
+        points.appendChild(dot);
+      });
     }
 
-    init();
+    function demarrerRotation() {
+      if (minuterie) clearTimeout(minuterie);
+      minuterie = setTimeout(() => {
+        if (!vue.length) return;
+        courant = (courant + 1) % vue.length;
+        renderSlide(vue[courant]);
+        demarrerRotation();
+      }, (Number(CFG.DUREE_SECONDES) || 14) * 1000);
+    }
+
+    async function demarrer() {
+      try {
+        const [resultats, evenements] = await Promise.all([
+          fetchJSON("data/resultats.json"),
+          lireEvenements(),
+        ]);
+
+        const parType = {
+          resultats: ecransResultats(resultats),
+          evenements: ecransEvenements(evenements),
+        };
+
+        const all = [];
+        (CFG.ORDRE || ["resultats", "evenements"]).forEach(key => {
+          if (Array.isArray(parType[key])) all.push(...parType[key]);
+        });
+
+        installer(all.length ? all : [{ html: '<div class="slide actif"><div class="vide"><h2>Rien à afficher pour le moment</h2><p>Les données seront visibles ici.</p></div></div>', nom: "Accueil" }]);
+      } catch (err) {
+        installer([{ html: '<div class="slide actif"><div class="vide"><h2>Rien à afficher pour le moment</h2><p>Les données seront visibles ici.</p></div></div>', nom: "Accueil" }]);
+      }
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (!vue.length) return;
+      if (event.key === "ArrowRight" || event.key === "PageDown") {
+        courant = (courant + 1) % vue.length; renderSlide(vue[courant]); demarrerRotation();
+      }
+      if (event.key === "ArrowLeft" || event.key === "PageUp") {
+        courant = (courant - 1 + vue.length) % vue.length; renderSlide(vue[courant]); demarrerRotation();
+      }
+    });
+
+    demarrer();
   </script>
 </body>
 </html>

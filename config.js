@@ -12,9 +12,9 @@ window.CONFIG = {
 
   /* Liens CSV de Google Sheets (Fichier > Partager > Publier sur le Web > un onglet > CSV).
      On accepte aussi un fichier .ics / URL iCal publique. */
-  SHEET_EVENEMENTS_CSV: "",
+  SHEET_EVENEMENTS_CSV: "data/evenements.csv",
   SHEET_INDISPOS_CSV: "",
 
   /* Ordre des pages. Retirer un mot pour masquer cette page. */
-  ORDRE: ["resultats", "indispos", "evenements"]
+  ORDRE: ["resultats", "evenements"]
 };
