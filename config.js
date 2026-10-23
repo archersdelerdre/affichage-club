@@ -8,6 +8,7 @@ window.CONFIG = {
   NB_WEEKENDS: 3,              // les 3 derniers week-end qui ont des résultats (une page par concours)
   ARCHERS_PAR_PAGE: 24,        // au-delà de 24 archers du club, un concours passe sur 2 pages
   MAX_JOURS: 45,               // on n'affiche pas de résultats plus vieux que 45 jours
+  EVENEMENTS_HORIZON_JOURS: 10, // on affiche les événements du jour jusqu'à 10 jours à venir
 
   /* Liens CSV de Google Sheets (Fichier > Partager > Publier sur le Web > un onglet > CSV).
      On accepte aussi un fichier .ics / URL iCal publique. */
