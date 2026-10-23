@@ -45,6 +45,26 @@ def as_text(value):
     return str(value)
 
 
+def normalize_color(raw):
+    value = as_text(raw).strip()
+    if not value:
+        return ""
+    value = value.replace("COLOR:", "").replace("X-WR-COLOR:", "").replace("X-APPLE-CALENDAR-COLOR:", "").strip()
+    if value.startswith("#"):
+        return value.upper()
+    if re.fullmatch(r"[A-F0-9]{6,8}", value, flags=re.I):
+        return "#" + value.upper() if len(value) in (6, 8) and not value.startswith("#") else value.upper()
+    if value.isdigit():
+        palette = {
+            1: "#A4BDF8", 2: "#7AE7BF", 3: "#DBADFF", 4: "#FF887C", 5: "#FBD75B",
+            6: "#FFB878", 7: "#46D6DB", 8: "#E1E1E1", 9: "#5484ED", 10: "#51B749",
+            11: "#DC2127", 12: "#FBD75B", 13: "#FFB878", 14: "#FF887C", 15: "#DBADFF",
+            16: "#7AE7BF", 17: "#A4BDF8", 18: "#C2D9FF"
+        }
+        return palette.get(int(value), "")
+    return value.upper()
+
+
 def clean_description(value):
     text = as_text(value)
     if not text:
@@ -118,6 +138,7 @@ def main():
             continue
         location = as_text(component.get("location"))
         description = clean_description(component.get("description"))
+        couleur = normalize_color(component.get("color") or component.get("COLOR") or component.get("X-WR-COLOR") or component.get("X-APPLE-CALENDAR-COLOR"))
 
         for occ_start, occ_end in extract_occurrences(component):
             occ_start = normalize_local(occ_start)
@@ -127,7 +148,7 @@ def main():
             end_date = to_date(occ_end)
             if start_date is None:
                 continue
-            key = (summary, start_date.isoformat(), end_date.isoformat() if end_date else "", location, description)
+            key = (summary, start_date.isoformat(), end_date.isoformat() if end_date else "", location, description, couleur)
             if key in seen:
                 continue
             seen.add(key)
@@ -143,13 +164,14 @@ def main():
                 "titre": summary,
                 "lieu": location,
                 "details": description,
+                "couleur": couleur,
             })
 
     rows.sort(key=lambda r: (r["date_debut"], r["titre"]))
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with OUT.open("w", encoding="utf-8", newline="") as fh:
-        writer = csv.DictWriter(fh, fieldnames=["date_debut", "date_fin", "heure", "titre", "lieu", "details"])
+        writer = csv.DictWriter(fh, fieldnames=["date_debut", "date_fin", "heure", "titre", "lieu", "details", "couleur"])
         writer.writeheader()
         writer.writerows(rows)
 
