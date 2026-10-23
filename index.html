@@ -59,7 +59,7 @@
   .ligne { display: grid; grid-template-columns: 3.6rem 1fr auto; align-items: center; gap: 1.2rem; padding: .55rem 0; border-top: 1px solid var(--trait); }
   .ligne:first-of-type { border-top: 0; }
   .rang {
-    font-family: var(--titre); font-weight: 700; font-size: 1.6rem; line-height: 2.4rem; height: 2.7rem; width: 2.7rem;
+    font-family: var(--titre); font-weight: 700; font-size: 1.7rem; line-height: 2.9rem; height: 3.2rem; width: 3.2rem; flex: none;
     text-align: center; border-radius: 50%; color: var(--texte-doux); border: .15rem solid var(--trait);
   }
   .rang.r1 { background: var(--or); border-color: var(--or); color: #1b1500; }
@@ -125,7 +125,7 @@
   .liste-archers.moyen .nom { font-size: 1.9rem; } .liste-archers.moyen .cat { font-size: 1.3rem; } .liste-archers.moyen .score { font-size: 2.6rem; }
   .liste-archers.compact .ar { padding-top: .3rem; padding-bottom: .3rem; gap: .8rem; }
   .liste-archers.compact .nom { font-size: 1.6rem; } .liste-archers.compact .cat { font-size: 1.15rem; } .liste-archers.compact .score { font-size: 2.3rem; }
-  .liste-archers.compact .rang { height: 2.4rem; line-height: 2.4rem; width: 2.9rem; font-size: 1.4rem; }
+  .liste-archers.compact .rang { height: 2.8rem; line-height: 2.5rem; width: 2.8rem; font-size: 1.4rem; }
   .legende { display: flex; flex-wrap: wrap; gap: 2.2rem; margin-top: 1.2rem; font-size: 1.3rem; color: var(--texte-doux); }
   .legende span { display: inline-flex; align-items: center; gap: .7rem; }
   .legende i { display: inline-block; width: .35rem; height: 1.4rem; background: none; border-left: .35rem solid var(--bleu); }
@@ -269,12 +269,28 @@ function parseCSV(texte) {
   return corps.map(l => Object.fromEntries(cles.map((k, i) => [k, (l[i] || "").trim()])));
 }
 async function chercher(url, json) {
+  /* Si le réseau tombe, on garde les dernières données reçues (mémoire du navigateur). */
+  const cle = "cache:" + url.split("?")[0];
+  let texte = null;
   try {
     const sep = url.includes("?") ? "&" : "?";
     const r = await fetch(url + sep + "t=" + Date.now(), { cache: "no-store" });
-    if (!r.ok) return null;
-    return json ? await r.json() : await r.text();
-  } catch (e) { return null; }
+    if (r.ok) texte = await r.text();
+  } catch (e) { /* hors ligne */ }
+  try {
+    if (texte !== null) localStorage.setItem(cle, texte);
+    else texte = localStorage.getItem(cle);
+  } catch (e) { /* stockage indisponible */ }
+  if (texte === null) return null;
+  if (json) { try { return JSON.parse(texte); } catch (e) { return null; } }
+  return texte;
+}
+/* Tableur : on essaie d'abord le lien Google, puis la copie enregistrée dans le dépôt. */
+async function lireTableur(lien, copie) {
+  const valide = t => t && !/^\s*</.test(t);
+  let t = lien ? await chercher(lien, false) : null;
+  if (!valide(t)) t = await chercher(copie, false);
+  return valide(t) ? t : null;
 }
 
 /* ------------------------------------------------------------ construction des écrans */
@@ -314,7 +330,7 @@ function samediDe(d) { return plusJours(d, -((d.getDay() + 1) % 7)); }   /* same
 
 /* Une page par concours : nombre d'archers et de podiums en titre, puis les archers du club */
 function ecransConcours(c, debutGroupe) {
-  const lignes = c.groupes.flatMap(g => g.lignes.map(([nom, r, sc]) => ({ nom, r, sc, cat: g.titre, arc: g.arc })));
+  const lignes = c.groupes.flatMap(g => g.lignes.map(([nom, r, sc, aff]) => ({ nom, r, sc, aff, cat: g.titre, arc: g.arc })));
   lignes.sort((a, b) => a.r - b.r || b.sc - a.sc || a.nom.localeCompare(b.nom, "fr"));
   const med = [1, 2, 3].map(r => lignes.filter(l => l.r === r).length);
   const podiums = med[0] + med[1] + med[2];
@@ -336,7 +352,7 @@ function ecransConcours(c, debutGroupe) {
         </div>
       </div>
       <div class="liste-archers ${taille}" style="--cols:${cols};--rows:${rows}">
-        ${page.map(l => `<div class="ar ${l.arc}"><span class="rang ${l.r <= 3 ? "r" + l.r : ""}">${rang(l.r)}</span><span class="nom">${formatNom(l.nom)}</span><span class="cat">${esc(l.cat)}</span><span class="score">${l.sc}</span></div>`).join("")}
+        ${page.map(l => `<div class="ar ${l.arc}"><span class="rang ${l.r <= 3 ? "r" + l.r : ""}">${rang(l.r)}</span><span class="nom">${formatNom(l.nom)}</span><span class="cat">${esc(l.cat)}</span><span class="score">${esc(l.aff || l.sc)}</span></div>`).join("")}
       </div>
       <div class="legende">${arcs.map(a => `<span><i class="${a}"></i>${esc(NOMS_ARC[a])}</span>`).join("")}</div>`;
     return section("", html, c.source, debutGroupe && i === 0);
@@ -412,8 +428,8 @@ function ecransIndispos(lignes) {
 async function construire() {
   const [res, evt, ind] = await Promise.all([
     chercher("data/resultats.json", true),
-    CFG.SHEET_EVENEMENTS_CSV ? chercher(CFG.SHEET_EVENEMENTS_CSV, false) : null,
-    CFG.SHEET_INDISPOS_CSV ? chercher(CFG.SHEET_INDISPOS_CSV, false) : null
+    lireTableur(CFG.SHEET_EVENEMENTS_CSV, "data/evenements.csv"),
+    lireTableur(CFG.SHEET_INDISPOS_CSV, "data/indisponibilites.csv")
   ]);
   const parType = {
     resultats: () => ecransResultats(res),
