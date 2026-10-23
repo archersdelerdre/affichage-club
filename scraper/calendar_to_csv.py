@@ -60,7 +60,9 @@ def clean_description(value):
 def normalize_local(dt):
     if dt is None:
         return None
-    if dt.tzinfo is None:
+    if isinstance(dt, date) and not isinstance(dt, datetime):
+        return datetime.combine(dt, datetime.min.time(), tzinfo=LOCAL_TZ)
+    if getattr(dt, "tzinfo", None) is None:
         return dt.replace(tzinfo=LOCAL_TZ)
     return dt.astimezone(LOCAL_TZ)
 
