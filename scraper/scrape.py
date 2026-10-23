@@ -63,8 +63,11 @@ def joli(texte):
         bas = mot.lower()
         if mot in ("TIR", "ARC"):
             mots.append(mot.capitalize())
-        elif bas in PETITS:
+        elif bas in PETITS or bas in ("un", "une"):
             mots.append(bas)
+        elif "'" in mot:
+            avant, apres = mot.split("'", 1)
+            mots.append(avant.lower() + "'" + apres.capitalize())
         elif any(c.isdigit() for c in mot) or (len(mot) <= 3 and mot.isupper()):
             mots.append(mot.upper())
         else:
@@ -95,7 +98,9 @@ def dates_fr(d1, d2):
     if d1 == d2:
         return f"{d1.day} {MOIS[d1.month - 1]} {d1.year}"
     if (d1.month, d1.year) == (d2.month, d2.year):
-        return f"{d1.day} et {d2.day} {MOIS[d1.month - 1]} {d1.year}"
+        liaison = "et" if (d2 - d1).days == 1 else "au"
+        debut = "" if liaison == "et" else "du "
+        return f"{debut}{d1.day} {liaison} {d2.day} {MOIS[d1.month - 1]} {d1.year}"
     return f"{d1.day} {MOIS[d1.month - 1]} au {d2.day} {MOIS[d2.month - 1]} {d2.year}"
 
 
@@ -118,12 +123,23 @@ def titre_court(titre):
     return re.sub(r"\s+20\d\d$", "", t).strip()
 
 
-def nb_manches(ligne):
-    """Lit l'en-tête du tableau : 'Clt Nom Club Licence Cat m m Total ...' -> 2 manches ; 'Cat P1 Total' -> 1."""
+def lire_entete(ligne):
+    """Lit l'en-tête du tableau.
+    ('total', n)       : n manches puis une colonne Total   (salle, extérieur, campagne)
+    ('multi', [noms])  : colonnes de résultat sans Total, ex. ['H.', 'P.'] (Beursault)
+    """
     t = ligne.split()
-    if "Cat" in t and "Total" in t and t.index("Total") > t.index("Cat"):
-        return t.index("Total") - t.index("Cat") - 1
-    return 2
+    if "Cat" not in t:
+        return ("total", 2)
+    apres = t[t.index("Cat") + 1:]
+    if "Total" in apres:
+        return ("total", apres.index("Total"))
+    noms = []
+    for x in apres:
+        if x.startswith("Nb"):
+            break
+        noms.append(x)
+    return ("multi", noms) if noms else ("total", 2)
 
 
 # ----------------------------------------------------------------- lecture d'un PDF
@@ -145,7 +161,7 @@ def lire_pdf(contenu):
     else:
         d1 = d2 = dt.date(int(m.group(10)), int(m.group(9)), int(m.group(8)))
 
-    groupes, tampon, courant, arret, dernier, prec, manches = {}, [], None, False, None, None, 2
+    groupes, tampon, courant, arret, dernier, prec, entete = {}, [], None, False, None, None, ("total", 2)
     for ligne in (l.strip() for l in texte.splitlines()):
         if not ligne:
             continue
@@ -156,7 +172,7 @@ def lire_pdf(contenu):
         if ligne.startswith(("Clt ", "Tir ")):       # en-tête de tableau : la ligne d'avant est le titre de la catégorie
             if prec:
                 courant = re.sub(r"\s*\(Suite\)\s*$", "", prec).strip()
-            manches = nb_manches(ligne)
+            entete = lire_entete(ligne)
             tampon, dernier = [], None
             continue
         if ligne.startswith(("Nbre d'archers", "Classement Officiel")) or re.search(r"Page \d+/\d+$", ligne):
@@ -169,18 +185,24 @@ def lire_pdf(contenu):
                 reste = r.group(2)
                 club = next((c for c in CLUBS if reste.upper().endswith(c)), None)
                 nom = reste[: -len(club)].strip() if club else reste
-                # Les manches vides ne laissent aucun nombre dans le texte : on ne peut pas compter les colonnes.
-                # Le total est le plus grand des (manches + 1) premiers nombres (il est >= à chaque manche).
-                fenetre = nombres[: manches + 1]
-                total_ligne = max(fenetre)
-                pos = max(i for i, v in enumerate(fenetre) if v == total_ligne)
-                extra = nombres[pos + 1:]
+                if entete[0] == "total":
+                    # Les manches vides ne laissent aucun nombre dans le texte : on ne peut pas compter les colonnes.
+                    # Le total est le plus grand des (manches + 1) premiers nombres (il est >= à chaque manche).
+                    fenetre = nombres[: entete[1] + 1]
+                    total_ligne = max(fenetre)
+                    pos = max(i for i, v in enumerate(fenetre) if v == total_ligne)
+                    valeurs, extra, affichage = [total_ligne], nombres[pos + 1:], None
+                else:
+                    # Colonnes de résultat sans total (Beursault : H. puis P.) : classement sur la 1re, puis la 2e...
+                    k = len(entete[1])
+                    valeurs, extra = nombres[:k], nombres[k:]
+                    affichage = ", ".join(f"{v} {n.rstrip('.')}" for n, v in zip(entete[1], valeurs))
                 if len(extra) >= 2:
                     nb_haut, nb_bas = extra[0], extra[1]
                 else:                                 # une seule valeur : on la compte comme 2e colonne
                     nb_haut, nb_bas = 0, (extra[0] if extra else 0)
-                dernier = {"licence": r.group(3), "total": total_ligne,
-                           "nb10": nb_haut, "nb9": nb_bas, "club": club, "nom": nom}
+                dernier = {"licence": r.group(3), "total": valeurs[0], "cle": tuple(valeurs) + (nb_haut, nb_bas),
+                           "affichage": affichage, "club": club, "nom": nom}
                 groupes.setdefault(courant, []).append(dernier)
             tampon = []
         elif dernier is not None and not re.search(r"\d", ligne) and len(ligne) < 40:
@@ -195,17 +217,17 @@ def lire_pdf(contenu):
     for titre, lignes in groupes.items():
         meilleurs = {}
         for l in lignes:                              # un archer présent 2 fois : on garde le meilleur
-            if l["licence"] not in meilleurs or l["total"] > meilleurs[l["licence"]]["total"]:
+            if l["licence"] not in meilleurs or l["cle"] > meilleurs[l["licence"]]["cle"]:
                 meilleurs[l["licence"]] = l
-        classes = sorted(meilleurs.values(), key=lambda l: (-l["total"], -l["nb10"], -l["nb9"]))
+        classes = sorted(meilleurs.values(), key=lambda l: l["cle"], reverse=True)
         rang, precedent, resultat = 0, None, []
         for pos, l in enumerate(classes, start=1):
-            cle = (l["total"], l["nb10"], l["nb9"])
+            cle = l["cle"]
             if cle != precedent:
                 rang, precedent = pos, cle
             if l["club"]:
                 nom = formater_nom(l["nom"])
-                resultat.append([CORRECTIONS.get(nom, nom), rang, l["total"]])
+                resultat.append([CORRECTIONS.get(nom, nom), rang, l["total"]] + ([l["affichage"]] if l["affichage"] else []))
         if resultat:
             sorties.append({"arc": type_arc(titre), "titre": titre_court(titre), "lignes": resultat})
     if not sorties:
@@ -340,3 +362,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
