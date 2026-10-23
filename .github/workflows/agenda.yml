@@ -1,1 +1,34 @@
+name: Agenda du club
 
+on:
+  schedule:
+    - cron: "0 */3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-calendar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer les dépendances
+        run: pip install requests icalendar
+
+      - name: Générer le CSV depuis le calendrier Google
+        run: python scraper/calendar_to_csv.py
+        env:
+          CALENDAR_URL: "https://calendar.google.com/calendar/ical/secretaire.archerserdre%40gmail.com/public/basic.ics"
+
+      - name: Commit du CSV
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/evenements.csv
+          git diff --cached --quiet || (git commit -m "Mise à jour des événements" && git push)
