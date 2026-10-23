@@ -2,10 +2,13 @@
 """Télécharge le calendrier public Google et le transforme en CSV exploitable par la page d'affichage."""
 
 import csv
+import html
 import os
+import re
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import requests
 from icalendar import Calendar
@@ -13,6 +16,8 @@ from icalendar import Calendar
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "data" / "evenements.csv"
 DEFAULT_URL = "https://calendar.google.com/calendar/ical/secretaire.archerserdre%40gmail.com/public/basic.ics"
+LOCAL_TZ = ZoneInfo("Europe/Paris")
+
 
 def read_calendar(url: str) -> Calendar:
     r = requests.get(url, timeout=60)
@@ -34,8 +39,30 @@ def as_text(value):
     if value is None:
         return ""
     if isinstance(value, str):
-        return value.replace("\\n", "\n").replace("\\,", ",")
+        text = value.replace("\\n", "\n").replace("\\,", ",").replace("\\;", ";")
+        text = text.replace("\r\n", "\n").replace("\r", "\n")
+        return text.strip()
     return str(value)
+
+
+def clean_description(value):
+    text = as_text(value)
+    if not text:
+        return ""
+    text = re.sub(r"<br\s*/?>", "\n", text, flags=re.I)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = html.unescape(text)
+    text = re.sub(r"https?://\S+", "", text)
+    text = re.sub(r"\n\s*\n+", "\n", text)
+    return text.replace("\n ", "\n").strip()
+
+
+def normalize_local(dt):
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=LOCAL_TZ)
+    return dt.astimezone(LOCAL_TZ)
 
 
 def extract_occurrences(event):
@@ -88,9 +115,12 @@ def main():
         if not summary:
             continue
         location = as_text(component.get("location"))
-        description = as_text(component.get("description"))
+        description = clean_description(component.get("description"))
 
         for occ_start, occ_end in extract_occurrences(component):
+            occ_start = normalize_local(occ_start)
+            occ_end = normalize_local(occ_end)
+
             start_date = to_date(occ_start)
             end_date = to_date(occ_end)
             if start_date is None:
