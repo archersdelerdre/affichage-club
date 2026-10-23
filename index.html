@@ -365,6 +365,10 @@ function formatHeure(date) {
   if (!date) return "";
   return new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit", hour12: false }).format(date);
 }
+function nettoyerDetails(valeur) {
+  const s = String(valeur ?? "").replace(/\[(.*?)\]\((https?:\/\/[^)]+)\)/gi, "$1").replace(/https?:\/\/[^\s]+/gi, "").replace(/www\.[^\s]+/gi, "").replace(/\s{2,}/g, " ").trim();
+  return s;
+}
 async function chercher(url, json) {
   const cle = "cache:" + url.split("?")[0];
   let texte = null;
@@ -442,7 +446,7 @@ function ecransConcours(c, debutGroupe) {
         </div>
       </div>
       <div class="liste-archers ${taille}" style="--cols:${cols};--rows:${rows}">
-        ${page.map(l => `<div class="ar ${l.arc}"><span class="rang ${l.r <= 3 ? "r" + l.r : ""}">${rang(l.r)}</span><span class="nom">${formatNom(l.nom)}</span><span class="cat">${esc(l.cat)}</span><span class="score">${esc(String(l.sc).replace(/\B(?=(\d{3})+(?!\d))/g, " "))}</span></div>`).join("")}
+        ${page.map(l => `<div class="ar ${l.arc}"><span class="rang ${l.r <= 3 ? "r" + l.r : ""}">${rang(l.r)}</span><span class="nom">${formatNom(l.nom)}</span><span class="cat">${esc(l.cat)}</span><span class="score">${l.sc}</span></div>`).join("")}
       </div>
       <div class="legende">${arcs.map(a => `<span><i class="${a}"></i>${esc(NOMS_ARC[a])}</span>`).join("")}</div>`;
     return section("", html, c.source, debutGroupe && i === 0);
@@ -493,7 +497,8 @@ function ecransEvenements(lignes) {
   return pages(evts, 4).map((page, i, tout) => {
     const html = page.map(e => {
       const date = e.d1;
-      const sous = [e.lieu, e.details].filter(Boolean).map(esc).join("<br>");
+      const details = nettoyerDetails(e.details);
+      const sous = [e.lieu, details].filter(Boolean).map(esc).join("<br>");
       const multi = e.d2 && +e.d2 !== +date ? `<p>${esc(periode(date, e.d2))}</p>` : "";
       return `<div class="evt">
         <div class="date"><span class="jour">${date.getDate()}</span><span class="mois">${esc(fmt(date, { month: "short" }))}</span></div>
