@@ -65,6 +65,31 @@ def normalize_color(raw):
     return value.upper()
 
 
+def infer_type(summary: str, location: str = "", description: str = "") -> str:
+    text = f"{summary} {location} {description}".lower()
+    if "vacances" in text:
+        return "vacances"
+    if "férié" in text or "ferie" in text or "salle fermée" in text or "salle fermee" in text or "fermé" in text or "ferme" in text:
+        return "ferie"
+    if "stage" in text:
+        return "stage"
+    if "tournoi" in text:
+        return "tournoi"
+    if "formation" in text or "arbitre" in text:
+        return "formation"
+    if "assemblée" in text or "assemblee" in text or "réunion" in text or "reunion" in text:
+        return "reunion"
+    if "soirée" in text or "soiree" in text:
+        return "soiree"
+    if "examen" in text:
+        return "examen"
+    if "cours" in text:
+        return "cours"
+    if "indisponible" in text or "indisponibilit" in text:
+        return "indisponible"
+    return ""
+
+
 def clean_description(value):
     text = as_text(value)
     if not text:
@@ -85,6 +110,31 @@ def normalize_local(dt):
     if getattr(dt, "tzinfo", None) is None:
         return dt.replace(tzinfo=LOCAL_TZ)
     return dt.astimezone(LOCAL_TZ)
+
+
+def read_existing_types(csv_path: Path):
+    overrides = {}
+    if not csv_path.exists():
+        return overrides
+    try:
+        with csv_path.open("r", encoding="utf-8", newline="") as fh:
+            reader = csv.DictReader(fh)
+            if not reader.fieldnames or "type" not in reader.fieldnames:
+                return overrides
+            for row in reader:
+                key = (
+                    (row.get("date_debut") or "").strip(),
+                    (row.get("date_fin") or "").strip(),
+                    (row.get("titre") or "").strip(),
+                    (row.get("lieu") or "").strip(),
+                    clean_description(row.get("details") or "")
+                )
+                valeur = (row.get("type") or "").strip()
+                if key and valeur:
+                    overrides[key] = valeur
+    except Exception:
+        return {}
+    return overrides
 
 
 def extract_occurrences(event):
@@ -129,6 +179,7 @@ def extract_occurrences(event):
 def main():
     url = os.environ.get("CALENDAR_URL", DEFAULT_URL)
     cal = read_calendar(url)
+    overrides = read_existing_types(OUT)
 
     rows = []
     seen = set()
@@ -148,10 +199,21 @@ def main():
             end_date = to_date(occ_end)
             if start_date is None:
                 continue
-            key = (summary, start_date.isoformat(), end_date.isoformat() if end_date else "", location, description, couleur)
+
+            key = (
+                start_date.isoformat(),
+                end_date.isoformat() if end_date and end_date != start_date else "",
+                summary,
+                location,
+                description,
+            )
             if key in seen:
                 continue
             seen.add(key)
+
+            type_value = overrides.get((key[0], key[1], key[2], key[3], key[4]), "")
+            if not type_value:
+                type_value = infer_type(summary, location, description)
 
             heure = ""
             if isinstance(occ_start, datetime):
@@ -165,13 +227,17 @@ def main():
                 "lieu": location,
                 "details": description,
                 "couleur": couleur,
+                "type": type_value,
             })
 
     rows.sort(key=lambda r: (r["date_debut"], r["titre"]))
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with OUT.open("w", encoding="utf-8", newline="") as fh:
-        writer = csv.DictWriter(fh, fieldnames=["date_debut", "date_fin", "heure", "titre", "lieu", "details", "couleur"])
+        writer = csv.DictWriter(
+            fh,
+            fieldnames=["date_debut", "date_fin", "heure", "titre", "lieu", "details", "couleur", "type"],
+        )
         writer.writeheader()
         writer.writerows(rows)
 
