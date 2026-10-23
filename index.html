@@ -211,6 +211,7 @@
 const CFG = Object.assign({
   CLUB_NOM: "Archers de l'Erdre", CLUB_LABEL: "Archers de l'Erdre, résultats du week-end",
   DUREE_SECONDES: 14, RECHARGE_MINUTES: 15, NB_WEEKENDS: 3, MAX_JOURS: 45, ARCHERS_PAR_PAGE: 24,
+  EVENEMENTS_HORIZON_JOURS: 10,
   SHEET_EVENEMENTS_CSV: "", SHEET_INDISPOS_CSV: "", ORDRE: ["resultats", "indispos", "evenements"]
 }, window.CONFIG || {});
 
@@ -232,6 +233,7 @@ function formatNom(n) {
 const rang = c => c === 1 ? "1er" : c + "e";
 const jourMs = 86400000;
 function aujourdhui() { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function plusJours(d, n) { const r = new Date(d.getFullYear(), d.getMonth(), d.getDate()); r.setDate(r.getDate() + n); return r; }
 function lireDate(s) {                      /* accepte 2026-10-24 ou 24/10/2026 */
   s = String(s || "").trim();
   let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
@@ -364,23 +366,21 @@ function formatHeure(date) {
   return new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit", hour12: false }).format(date);
 }
 async function chercher(url, json) {
-  /* Si le réseau tombe, on garde les dernières données reçues (mémoire du navigateur). */
   const cle = "cache:" + url.split("?")[0];
   let texte = null;
   try {
     const sep = url.includes("?") ? "&" : "?";
     const r = await fetch(url + sep + "t=" + Date.now(), { cache: "no-store" });
     if (r.ok) texte = await r.text();
-  } catch (e) { /* hors ligne */ }
+  } catch (e) {}
   try {
     if (texte !== null) localStorage.setItem(cle, texte);
     else texte = localStorage.getItem(cle);
-  } catch (e) { /* stockage indisponible */ }
+  } catch (e) {}
   if (texte === null) return null;
   if (json) { try { return JSON.parse(texte); } catch (e) { return null; } }
   return texte;
 }
-/* Tableur : on essaie d'abord le lien Google, puis la copie enregistrée dans le dépôt. */
 async function lireTableur(lien, copie) {
   const valide = t => t && !/^\s*</.test(t);
   let t = lien ? await chercher(lien, false) : null;
@@ -388,7 +388,6 @@ async function lireTableur(lien, copie) {
   return valide(t) ? t : null;
 }
 
-/* ------------------------------------------------------------ construction des écrans */
 function cible() {
   const anneaux = [["#f4f1e8", 50], ["#0b1520", 40], ["#3b8bd1", 30], ["#d9442f", 20], ["#f2c230", 10]];
   const cercles = anneaux.map(([c, r], i) =>
@@ -419,18 +418,14 @@ function entete(titre, haut, bas) {
   return `<div class="entete"><h2>${esc(titre)}</h2><div class="qui"><strong>${esc(haut)}</strong><span>${esc(bas)}</span></div></div>`;
 }
 
-/* ----- week-ends : un week-end = le samedi et le dimanche ----- */
-function plusJours(d, n) { const r = new Date(d.getFullYear(), d.getMonth(), d.getDate()); r.setDate(r.getDate() + n); return r; }
-function samediDe(d) { return plusJours(d, -((d.getDay() + 1) % 7)); }   /* samedi le plus récent avant ou égal à d */
+function samediDe(d) { return plusJours(d, -((d.getDay() + 1) % 7)); }
 
-/* Une page par concours : nombre d'archers et de podiums en titre, puis les archers du club */
 function ecransConcours(c, debutGroupe) {
   const lignes = c.groupes.flatMap(g => g.lignes.map(([nom, r, sc, aff]) => ({ nom, r, sc, aff, cat: g.titre, arc: g.arc })));
   lignes.sort((a, b) => a.r - b.r || b.sc - a.sc || a.nom.localeCompare(b.nom, "fr"));
   const med = [1, 2, 3].map(r => lignes.filter(l => l.r === r).length);
   const podiums = med[0] + med[1] + med[2];
-  const libelle = (n, un, plusieurs) => n + " " + (n > 1 ? plusieurs : un);
-  const nbPages = Math.ceil(lignes.length / CFG.ARCHERS_PAR_PAGE);        /* au-delà : le concours passe sur 2 pages (ou plus) */
+  const nbPages = Math.ceil(lignes.length / CFG.ARCHERS_PAR_PAGE);
   return pages(lignes, Math.ceil(lignes.length / nbPages)).map((page, i, tout) => {
     const n = page.length;
     const cols = n <= 3 ? 1 : 2;
@@ -447,7 +442,7 @@ function ecransConcours(c, debutGroupe) {
         </div>
       </div>
       <div class="liste-archers ${taille}" style="--cols:${cols};--rows:${rows}">
-        ${page.map(l => `<div class="ar ${l.arc}"><span class="rang ${l.r <= 3 ? "r" + l.r : ""}">${rang(l.r)}</span><span class="nom">${formatNom(l.nom)}</span><span class="cat">${esc(l.cat)}</span><span class="score">${l.sc}</span></div>`).join("")}
+        ${page.map(l => `<div class="ar ${l.arc}"><span class="rang ${l.r <= 3 ? "r" + l.r : ""}">${rang(l.r)}</span><span class="nom">${formatNom(l.nom)}</span><span class="cat">${esc(l.cat)}</span><span class="score">${esc(String(l.sc).replace(/\B(?=(\d{3})+(?!\d))/g, " "))}</span></div>`).join("")}
       </div>
       <div class="legende">${arcs.map(a => `<span><i class="${a}"></i>${esc(NOMS_ARC[a])}</span>`).join("")}</div>`;
     return section("", html, c.source, debutGroupe && i === 0);
@@ -456,7 +451,7 @@ function ecransConcours(c, debutGroupe) {
 
 function ecransResultats(donnees) {
   const auj = aujourdhui();
-  const debut = plusJours(auj, -CFG.MAX_JOURS);                          /* on ignore ce qui est trop ancien (trêve estivale) */
+  const debut = plusJours(auj, -CFG.MAX_JOURS);
   const dedans = ((donnees && donnees.concours) || [])
     .map(c => ({ c, fin: lireDate(c.fin) }))
     .filter(x => x.fin && x.fin >= debut && x.fin <= auj);
@@ -482,12 +477,7 @@ function pages(liste, parPage) {
 
 function ecransEvenements(lignes) {
   const auj = aujourdhui();
-  const lundi = new Date(auj);
-  lundi.setDate(auj.getDate() - ((auj.getDay() + 6) % 7));
-  lundi.setHours(0, 0, 0, 0);
-  const dimanche = new Date(lundi);
-  dimanche.setDate(lundi.getDate() + 6);
-  dimanche.setHours(23, 59, 59, 999);
+  const fin = plusJours(auj, Math.max(0, Number(CFG.EVENEMENTS_HORIZON_JOURS) || 0));
 
   const evts = (lignes || []).map(l => {
     const d1 = l.d1 instanceof Date ? l.d1 : (l.date_debut instanceof Date ? l.date_debut : lireDate(l.date_debut));
@@ -495,61 +485,22 @@ function ecransEvenements(lignes) {
     const item = { ...l, d1, d2, heure: l.heure || (d1 ? formatHeure(d1) : "") };
     return item;
   })
-    .filter(e => e.d1 && e.titre && e.d1 >= lundi && e.d1 <= dimanche)
+    .filter(e => e.d1 && e.titre && e.d1 >= auj && e.d1 <= fin)
     .sort((a, b) => a.d1 - b.d1);
 
-  if (!evts.length) {
-    const suivante = (lignes || []).map(l => ({ ...l, d1: l.d1 instanceof Date ? l.d1 : (l.date_debut instanceof Date ? l.date_debut : lireDate(l.date_debut)), d2: l.d2 instanceof Date ? l.d2 : (l.date_fin instanceof Date ? l.date_fin : lireDate(l.date_fin)) }))
-      .filter(e => e.d1 && e.titre && e.d1 >= auj)
-      .sort((a, b) => a.d1 - b.d1);
-    return pages(suivante.slice(0, 12), 4).map((page, i, tout) => {
-      const html = page.map(e => {
-        const date = e.d1;
-        const sous = [e.lieu, e.details].filter(Boolean).map(esc).join("<br>");
-        const multi = e.d2 && +e.d2 !== +date ? `<p>${esc(periode(date, e.d2))}</p>` : "";
-        return `<div class="evt">
-          <div class="date"><span class="jour">${date.getDate()}</span><span class="mois">${esc(fmt(date, { month: "short" }))}</span></div>
-          <div><h3>${esc(e.titre)}</h3>${multi}<p>${sous}</p></div>
-          <div class="heure">${esc(e.heure || "")}</div></div>`;
-      }).join("");
-      return section("", `${entete("Événements", CFG.CLUB_NOM, tout.length > 1 ? `page ${i + 1} sur ${tout.length}` : "Agenda du club")}<div class="liste">${html}</div>`, "Agenda du club", i === 0);
-    });
-  }
+  if (!evts.length) return [];
 
-  const parJour = new Map();
-  for (let i = 0; i <= 6; i++) {
-    const d = new Date(lundi);
-    d.setDate(lundi.getDate() + i);
-    parJour.set(+d, []);
-  }
-  for (const e of evts) {
-    const key = +new Date(e.d1.getFullYear(), e.d1.getMonth(), e.d1.getDate());
-    if (parJour.has(key)) parJour.get(key).push(e);
-  }
-
-  const jours = [];
-  for (let i = 0; i <= 6; i++) {
-    const d = new Date(lundi);
-    d.setDate(lundi.getDate() + i);
-    const items = parJour.get(+d) || [];
-    if (!items.length) continue;
-    jours.push({ d, items });
-  }
-  if (!jours.length) return [];
-
-  return pages(jours, 2).map((page, i, tout) => {
-    const html = page.map(({ d, items }) => {
-      const lignesJour = items.map(e => {
-        const sous = [e.lieu, e.details].filter(Boolean).map(esc).join("<br>");
-        const heure = e.heure || (e.d1 ? fmt(e.d1, { hour: "2-digit", minute: "2-digit" }) : "");
-        return `<div class="evt">
-          <div class="date"><span class="jour">${e.d1.getDate()}</span><span class="mois">${esc(fmt(e.d1, { month: "short" }))}</span></div>
-          <div><h3>${esc(e.titre)}</h3><p>${esc(periode(e.d1, e.d2))}</p><p>${sous}</p></div>
-          <div class="heure">${esc(heure)}</div></div>`;
-      }).join("");
-      return `<div class="evt"><div class="date"><span class="jour">${d.getDate()}</span><span class="mois">${esc(fmt(d, { month: "short" }))}</span></div><div><h3>${esc(fmt(d, { weekday: "long" }))}</h3>${lignesJour}</div><div class="heure">${esc("")}</div></div>`;
+  return pages(evts, 4).map((page, i, tout) => {
+    const html = page.map(e => {
+      const date = e.d1;
+      const sous = [e.lieu, e.details].filter(Boolean).map(esc).join("<br>");
+      const multi = e.d2 && +e.d2 !== +date ? `<p>${esc(periode(date, e.d2))}</p>` : "";
+      return `<div class="evt">
+        <div class="date"><span class="jour">${date.getDate()}</span><span class="mois">${esc(fmt(date, { month: "short" }))}</span></div>
+        <div><h3>${esc(e.titre)}</h3>${multi}<p>${sous}</p></div>
+        <div class="heure">${esc(e.heure || "")}</div></div>`;
     }).join("");
-    return section("", `${entete("Événements de la semaine", CFG.CLUB_NOM, tout.length > 1 ? `page ${i + 1} sur ${tout.length}` : "Agenda du club")}<div class="liste">${html}</div>`, "Agenda du club", i === 0);
+    return section("", `${entete("Événements", CFG.CLUB_NOM, tout.length > 1 ? `page ${i + 1} sur ${tout.length}` : "Agenda du club")}<div class="liste">${html}</div>`, "Agenda du club", i === 0);
   });
 }
 
@@ -578,7 +529,7 @@ function ecransIndispos(lignes) {
 async function construire() {
   const [res, evt, ind] = await Promise.all([
     chercher("data/resultats.json", true),
-    lireTableur(CFG.SHEET_EVENEMENTS_CSV, "data/evenements.ics") || lireTableur(null, "data/evenements.csv"),
+    lireTableur(CFG.SHEET_EVENEMENTS_CSV, "data/evenements.csv") || lireTableur(null, "data/evenements.csv"),
     lireTableur(CFG.SHEET_INDISPOS_CSV, "data/indisponibilites.csv")
   ]);
   const parseEvenements = texte => (/^BEGIN:VCALENDAR/i.test(texte || "") ? parseICS(texte) : parseCSV(texte));
@@ -594,7 +545,6 @@ async function construire() {
   return tous;
 }
 
-/* ------------------------------------------------------------ défilement */
 let slides = [], courant = -1, minuterie = null;
 function montrer(i) {
   courant = (i + slides.length) % slides.length;
@@ -616,7 +566,7 @@ function installer(nouveaux) {
 async function demarrer() {
   installer(await construire());
   afficher(0);
-  setInterval(async () => {                    /* relit les données sans interrompre le défilement */
+  setInterval(async () => {
     const nouveaux = await construire();
     const i = Math.min(courant, nouveaux.length - 1);
     installer(nouveaux);
