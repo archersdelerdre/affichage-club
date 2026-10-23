@@ -5,13 +5,13 @@ window.CONFIG = {
   DUREE_SECONDES: 14,          // durée d'un écran
   RECHARGE_MINUTES: 15,        // la page relit les données toutes les 15 minutes
 
-  NB_WEEKENDS: 3,              // les 3 derniers week-ends qui ont des résultats (une page par concours)
+  NB_WEEKENDS: 3,              // les 3 derniers week-end qui ont des résultats (une page par concours)
   ARCHERS_PAR_PAGE: 24,        // au-delà de 24 archers du club, un concours passe sur 2 pages
   MAX_JOURS: 45,               // on n'affiche pas de résultats plus vieux que 45 jours
 
   /* Liens CSV de Google Sheets (Fichier > Partager > Publier sur le Web > un onglet > CSV).
      On accepte aussi un fichier .ics / URL iCal publique. */
-  SHEET_EVENEMENTS_CSV: "",
+  SHEET_EVENEMENTS_CSV: "https://calendar.google.com/calendar/ical/secretaire.archerserdre%40gmail.com/public/basic.ics",
   SHEET_INDISPOS_CSV: "",
 
   /* Ordre des pages. Retirer un mot pour masquer cette page. */
