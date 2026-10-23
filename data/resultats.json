@@ -2,6 +2,41 @@
  "maj": "2026-10-23",
  "concours": [
   {
+   "nom": "Tir Beursault Dans un JEU d'Arc",
+   "format": "Tir Beursault (Beursault sélectif)",
+   "dates": "du 16 au 18 octobre 2026",
+   "fin": "2026-10-18",
+   "totalArchers": 24,
+   "source": "Source : classement officiel FFTA du 20 octobre 2026",
+   "groupes": [
+    {
+     "arc": "classique",
+     "titre": "Senior 2 Homme",
+     "lignes": [
+      [
+       "Germain FRICOTEAUX",
+       1,
+       40,
+       "40 H, 96 P"
+      ]
+     ]
+    },
+    {
+     "arc": "droit",
+     "titre": "Seniors Homme",
+     "lignes": [
+      [
+       "Nicolas MARTEL",
+       1,
+       21,
+       "21 H, 32 P"
+      ]
+     ]
+    }
+   ],
+   "id": "https://extranet.ffta.fr/pdfresultats/2026/B_1079182_20261016_79354.pdf"
+  },
+  {
    "nom": "Concours Salle Cande 10 et 11 OCT 2026",
    "format": "Tir à 18m (2X18M)",
    "dates": "10 et 11 octobre 2026",
@@ -169,7 +204,7 @@
   {
    "nom": "Championnat de France PAR Categorie",
    "format": "Tir en Campagne ((12 CONNUES + 12 INCONNUES) X2)",
-   "dates": "6 et 9 août 2026",
+   "dates": "du 6 au 9 août 2026",
    "fin": "2026-08-09",
    "totalArchers": 374,
    "source": "Source : classement officiel FFTA du 10 août 2026",
@@ -181,7 +216,8 @@
       [
        "Alexandra JOBERT",
        12,
-       345
+       345,
+       "345 Qual"
       ]
      ]
     }
