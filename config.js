@@ -10,7 +10,7 @@ window.CONFIG = {
   MAX_JOURS: 45,               // on n'affiche pas de résultats plus vieux que 45 jours
 
   /* Liens CSV de Google Sheets (Fichier > Partager > Publier sur le Web > un onglet > CSV).
-     Laisser vide pour ne pas afficher la page correspondante. */
+     On accepte aussi un fichier .ics / URL iCal publique. */
   SHEET_EVENEMENTS_CSV: "",
   SHEET_INDISPOS_CSV: "",
 
