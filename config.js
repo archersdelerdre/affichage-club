@@ -18,3 +18,12 @@ window.CONFIG = {
   /* Ordre des pages. Retirer un mot pour masquer cette page. */
   ORDRE: ["resultats", "evenements"]
 };
+/* Logo du club en filigrane */
+(function () {
+  var s = document.createElement("style");
+  s.textContent =
+    'body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;' +
+    'background:url("logo-fond.png") center / auto 88% no-repeat;opacity:.10}' +
+    '#scene{z-index:1}';
+  document.head.appendChild(s);
+})();
