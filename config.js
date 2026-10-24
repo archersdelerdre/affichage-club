@@ -23,7 +23,7 @@ window.CONFIG = {
   var s = document.createElement("style");
   s.textContent =
     'body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;' +
-    'background:url("logo-fond.png") center / auto 88% no-repeat;opacity:.10}' +
+    'background:url("logo-fond.png") center / auto 88% no-repeat;opacity:.15}' +
     '#scene{z-index:1}';
   document.head.appendChild(s);
 })();
