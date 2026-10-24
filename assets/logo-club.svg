@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Logo Archers de l'Erdre">
+  <defs>
+    <style>
+      .stroke { stroke: #c63d2c; stroke-width: 10; fill: none; }
+      .dark { fill: #1c1c1c; }
+      .red { fill: #c63d2c; }
+      .gold { fill: #e8d15b; }
+      .gold2 { fill: #f1d742; }
+      .text { font-family: "Arial Black", "Segoe UI", sans-serif; font-weight: 900; letter-spacing: 2px; }
+      .small { font-size: 72px; }
+      .medium { font-size: 94px; }
+      .large { font-size: 110px; }
+    </style>
+  </defs>
+
+  <circle cx="400" cy="400" r="325" fill="#f4f4f2" stroke="#c63d2c" stroke-width="12"/>
+
+  <g transform="translate(0,20)">
+    <path d="M250 560 L220 220 L270 270 L500 80" fill="none" stroke="#1c1c1c" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M185 420 C245 300, 285 230, 340 178" fill="none" stroke="#1c1c1c" stroke-width="18" stroke-linecap="round"/>
+    <path d="M180 415 L130 445 L170 470 L202 445 Z" fill="#1c1c1c"/>
+    <path d="M219 245 L247 265 L228 290 L198 270 Z" fill="#1c1c1c"/>
+    <path d="M378 210 L400 198 L570 285 L554 320 Z" fill="#1c1c1c"/>
+    <path d="M426 180 L442 162 L490 188 L410 300 Z" fill="#1c1c1c"/>
+
+    <path d="M520 240 L580 300 L512 332 L462 282 Z" fill="#f1d742"/>
+    <path d="M470 328 L548 350 L503 402 L450 365 Z" fill="#f1d742"/>
+
+    <path d="M310 275 L360 165 L402 180 L322 305 Z" fill="#f1d742"/>
+    <path d="M340 300 L420 350 L375 390 L295 335 Z" fill="#f1d742"/>
+
+    <g transform="translate(410,360)">
+      <circle cx="0" cy="0" r="30" fill="#f1d742"/>
+      <circle cx="0" cy="0" r="17" fill="#f6efb4"/>
+      <path d="M0 -18 L12 0 L0 18 L-12 0 Z" fill="#0f0f0f" opacity="0.65"/>
+    </g>
+  </g>
+
+  <g transform="translate(160,190)" text-anchor="middle">
+    <text x="240" y="150" class="text large red">LES</text>
+    <text x="240" y="260" class="text large red">ARCHERS</text>
+    <text x="240" y="360" class="text large red">DE L'ERDRE</text>
+  </g>
+
+  <g transform="translate(0,0)">
+    <line x1="170" y1="645" x2="630" y2="645" stroke="#1c1c1c" stroke-width="8"/>
+    <text x="400" y="700" text-anchor="middle" class="text medium dark">CARQUEFOU</text>
+  </g>
+</svg>
