@@ -5,6 +5,7 @@ Colonnes de data/evenements.csv : date_debut, date_fin, heure, titre, lieu, deta
 - les événements récurrents sont dépliés (bibliothèque recurring-ical-events) ;
 - un événement « toute la journée » finit la veille de la date de fin du calendrier (la fin y est exclusive) ;
 - le « type » est deviné d'après le titre ; une valeur corrigée à la main dans le CSV est conservée.
+- la couleur du bandeau dépend du type (rouge = salle indisponible).
 """
 import csv
 import html
@@ -25,9 +26,10 @@ CHAMPS = ["date_debut", "date_fin", "heure", "titre", "lieu", "details", "couleu
 
 # Les mots sont cherchés « entiers » : « concours » ne doit pas être pris pour « cours ».
 TYPES = [
+    # rouge : la salle ou le terrain n'est pas utilisable
+    ("indisponible", r"indisponib|salle ferm[ée]e?|\bferm[ée]e?s?\b|fermeture|salle occup[ée]e?|pas d['e ]?\s?entra[iî]nement|annul[ée]"),
+    ("ferie", r"f[ée]ri[ée]"),
     ("vacances", r"vacances"),
-    ("ferie", r"f[ée]ri[ée]|salle ferm[ée]e?|\bferm[ée]e?s?\b|fermeture"),
-    ("indisponible", r"indisponib"),
     ("concours", r"\bconcours\b"),
     ("stage", r"\bstages?\b"),
     ("tournoi", r"\btournois?\b"),
@@ -37,6 +39,14 @@ TYPES = [
     ("examen", r"\bexamens?\b"),
     ("cours", r"\bcours\b"),
 ]
+
+# Couleur du petit bandeau de chaque événement selon son type (rouge = salle indisponible)
+COULEURS_TYPES = {
+    "indisponible": "#D9442F", "ferie": "#D9442F", "vacances": "#CD8B4A",
+    "concours": "#F2C230", "tournoi": "#F2C230", "stage": "#4CAF7A",
+    "formation": "#8E6BD1", "examen": "#8E6BD1", "reunion": "#A9BACB",
+    "soiree": "#E26FA6", "cours": "#3B8BD1",
+}
 
 
 def as_text(value):
@@ -151,11 +161,12 @@ def main():
         if cle + (details,) in vus:
             continue
         vus.add(cle + (details,))
+        type_ev = surcharges.get(cle) or infer_type(titre, lieu, details)
         lignes.append({
             "date_debut": cle[0], "date_fin": cle[1], "heure": heure,
             "titre": titre, "lieu": lieu, "details": details,
-            "couleur": normalize_color(ev.get("color")) or couleur_calendrier,
-            "type": surcharges.get(cle) or infer_type(titre, lieu, details),
+            "couleur": COULEURS_TYPES.get(type_ev) or normalize_color(ev.get("color")) or couleur_calendrier or "#3B8BD1",
+            "type": type_ev,
         })
 
     lignes.sort(key=lambda x: (x["date_debut"], x["heure"], x["titre"]))
@@ -171,7 +182,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as exc:
-        print(f"Erreur: {exc}", file=sys.stderr)
-        raise
         print(f"Erreur: {exc}", file=sys.stderr)
         raise
