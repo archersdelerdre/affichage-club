@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f2236">
+<title>Archers de l'Erdre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fond: #0f2236; --fond-2: #162f49; --trait: #2a4764; --texte: #f4f1e8; --texte-doux: #a9bacb;
+    --or: #f2c230; --rouge: #d9442f; --bleu: #3b8bd1; --argent: #c9d1da; --bronze: #cd8b4a;
+    --titre: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+    --corps: "Barlow", system-ui, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--fond); color: var(--texte); font-family: var(--corps); font-size: 16px; line-height: 1.35;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  header { padding: 18px 16px 6px; }
+  header h1 { margin: 0; font-family: var(--titre); font-weight: 700; font-size: 30px; line-height: 1; }
+  header p { margin: 4px 0 0; font-size: 13px; color: var(--texte-doux); }
+  .alerte { margin: 10px 16px 0; padding: 12px 14px; background: var(--rouge); color: #fff; border-radius: 10px; font-weight: 600; }
+  .alerte small { display: block; font-weight: 400; opacity: .95; }
+  nav { position: sticky; top: 0; z-index: 5; display: flex; gap: 8px; padding: 10px 16px; background: var(--fond); border-bottom: 1px solid var(--trait); margin-top: 8px; }
+  nav button { flex: 1; font: inherit; font-weight: 600; font-size: 16px; padding: 10px 0; border-radius: 999px; border: 1px solid var(--trait); background: none; color: var(--texte-doux); }
+  nav button.actif { background: var(--or); border-color: var(--or); color: #1b1500; }
+  main { position: relative; z-index: 1; padding: 6px 16px 40px; }
+  [hidden] { display: none !important; }
+  h2 { font-family: var(--titre); font-weight: 600; font-size: 22px; margin: 22px 0 8px; text-transform: capitalize; }
+  .vide { color: var(--texte-doux); text-align: center; margin: 40px 0; }
+
+  /* agenda */
+  .evt { --c: var(--bleu); display: grid; grid-template-columns: 56px 1fr; gap: 12px; background: var(--fond-2); border-left: 6px solid var(--c);
+    border-radius: 0 10px 10px 0; padding: 12px 12px 12px 10px; margin-bottom: 10px; }
+  .evt.rouge { background: #3a2230; }
+  .evt .date { text-align: center; font-family: var(--titre); line-height: 1; }
+  .evt .jour { display: block; font-size: 34px; font-weight: 700; }
+  .evt .mois { display: block; font-size: 14px; font-weight: 600; color: var(--c); text-transform: uppercase; margin-top: 2px; }
+  .evt h3 { margin: 0 0 2px; font-family: var(--titre); font-weight: 600; font-size: 21px; line-height: 1.1; }
+  .evt p { margin: 2px 0 0; font-size: 14px; color: var(--texte-doux); }
+  .evt .quand { color: var(--texte); }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: var(--rouge); color: #fff; margin-bottom: 4px; }
+  .legende { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 18px 0 0; font-size: 13px; color: var(--texte-doux); }
+  .legende span { display: inline-flex; align-items: center; gap: 6px; }
+  .legende i { width: 6px; height: 14px; border-radius: 2px; background: var(--c); }
+
+  /* résultats */
+  details.concours { background: var(--fond-2); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+  details.concours > summary { list-style: none; cursor: pointer; padding: 14px; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+  details.concours > summary::-webkit-details-marker { display: none; }
+  .concours h3 { margin: 0; font-family: var(--titre); font-weight: 600; font-size: 22px; line-height: 1.1; }
+  .concours .sous { margin: 3px 0 0; font-size: 13px; color: var(--texte-doux); }
+  .resume { text-align: right; font-size: 13px; color: var(--texte-doux); white-space: nowrap; }
+  .resume b { font-family: var(--titre); font-size: 22px; color: var(--texte); }
+  .med { display: flex; gap: 4px; justify-content: flex-end; margin-top: 4px; }
+  .rang { font-family: var(--titre); font-weight: 700; font-size: 14px; line-height: 24px; height: 28px; width: 28px; flex: none; text-align: center; border-radius: 50%;
+    color: var(--texte-doux); border: 2px solid var(--trait); }
+  .rang.r1 { background: var(--or); border-color: var(--or); color: #1b1500; }
+  .rang.r2 { background: var(--argent); border-color: var(--argent); color: #14202c; }
+  .rang.r3 { background: var(--bronze); border-color: var(--bronze); color: #1d1105; }
+  .rang.zero { background: none; border-color: var(--trait); color: var(--texte-doux); }
+  .archers { border-top: 1px solid var(--trait); }
+  .ar { display: grid; grid-template-columns: 32px 1fr auto; gap: 10px; align-items: center; padding: 9px 14px 9px 11px; border-bottom: 1px solid var(--trait); border-left: 4px solid var(--bleu); }
+  .ar.poulies { border-left-color: var(--rouge); } .ar.nu { border-left-color: var(--or); }
+  .ar.droit { border-left-color: var(--argent); } .ar.autre { border-left-color: var(--bronze); }
+  .ar .nom { font-weight: 500; }
+  .ar .nom b { font-weight: 600; }
+  .ar .cat { display: block; font-size: 12px; color: var(--texte-doux); }
+  .ar .score { font-family: var(--titre); font-weight: 700; font-size: 20px; text-align: right; }
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<header><h1 id="club"></h1><p id="maj"></p></header>
+<div id="alerte"></div>
+<nav><button data-v="agenda" class="actif">Agenda</button><button data-v="resultats">Résultats</button></nav>
+<main>
+  <section id="agenda"></section>
+  <section id="resultats" hidden></section>
+</main>
+
+<script>
+const CFG = Object.assign({
+  CLUB_NOM: "Archers de l'Erdre", NB_WEEKENDS: 3, MAX_JOURS: 45, HORIZON_JOURS_TEL: 90,
+  SHEET_EVENEMENTS_CSV: "data/evenements.csv", SHEET_INDISPOS_CSV: ""
+}, window.CONFIG || {});
+
+/* Couleur du bandeau par type d'événement (rouge = salle indisponible) */
+const COULEURS = { indisponible: "#D9442F", ferie: "#D9442F", vacances: "#CD8B4A", concours: "#F2C230", tournoi: "#F2C230",
+  stage: "#4CAF7A", formation: "#8E6BD1", examen: "#8E6BD1", reunion: "#A9BACB", soiree: "#E26FA6", cours: "#3B8BD1" };
+const LIBELLES = { indisponible: "Salle indisponible", ferie: "Férié", vacances: "Vacances", concours: "Concours", tournoi: "Tournoi",
+  stage: "Stage", formation: "Formation", examen: "Examen", reunion: "Réunion", soiree: "Soirée", cours: "Cours" };
+const ROUGES = ["indisponible", "ferie"];
+const NOMS_ARC = { classique: "Arc classique", poulies: "Arc à poulies", nu: "Arc nu", droit: "Arc droit", autre: "Autres" };
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = (d, o) => new Intl.DateTimeFormat("fr-FR", o).format(d);
+function plusJours(d, n) { const r = new Date(d.getFullYear(), d.getMonth(), d.getDate()); r.setDate(r.getDate() + n); return r; }
+function aujourdhui() { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function lireDate(s) {
+  s = String(s || "").trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
+  return null;
+}
+function periode(d1, d2) {
+  if (!d2 || +d2 === +d1) return fmt(d1, { weekday: "long", day: "numeric", month: "long" });
+  if (d1.getMonth() === d2.getMonth()) return "du " + fmt(d1, { weekday: "long", day: "numeric" }) + " au " + fmt(d2, { weekday: "long", day: "numeric", month: "long" });
+  return "du " + fmt(d1, { day: "numeric", month: "long" }) + " au " + fmt(d2, { day: "numeric", month: "long" });
+}
+function parseCSV(texte) {
+  const lignes = []; let ligne = [], champ = "", guillemets = false;
+  texte = texte.replace(/^\uFEFF/, "");
+  for (let i = 0; i < texte.length; i++) {
+    const c = texte[i];
+    if (guillemets) {
+      if (c === '"' && texte[i + 1] === '"') { champ += '"'; i++; }
+      else if (c === '"') guillemets = false; else champ += c;
+    } else if (c === '"') guillemets = true;
+    else if (c === ",") { ligne.push(champ); champ = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && texte[i + 1] === "\n") i++; ligne.push(champ); champ = ""; lignes.push(ligne); ligne = []; }
+    else champ += c;
+  }
+  if (champ !== "" || ligne.length) { ligne.push(champ); lignes.push(ligne); }
+  const [entete, ...corps] = lignes.filter(l => l.some(x => x.trim() !== ""));
+  if (!entete) return [];
+  const cles = entete.map(h => h.trim().toLowerCase());
+  return corps.map(l => Object.fromEntries(cles.map((k, i) => [k, (l[i] || "").trim()])));
+}
+function nettoyer(v) {
+  return String(v == null ? "" : v).replace(/\[(.*?)\]\((https?:\/\/[^)]+)\)/gi, "$1").replace(/https?:\/\/[^\s]+/gi, "").replace(/www\.[^\s]+/gi, "").replace(/\s{2,}/g, " ").trim();
+}
+function formatNom(n) {
+  const mots = String(n).split(" ");
+  const idx = mots.findIndex(m => m.length > 1 && m === m.toUpperCase() && /[A-ZÉÈÊËÀÂÎÏÔÛÇ]/.test(m));
+  if (idx < 0) return esc(n);
+  return esc(mots.slice(0, idx).join(" ")) + " <b>" + esc(mots.slice(idx).join(" ")) + "</b>";
+}
+const rang = c => c === 1 ? "1er" : c + "e";
+
+/* Lecture avec mémoire : si le réseau tombe, on garde les dernières données reçues */
+async function chercher(url, json) {
+  const cle = "cache:" + url.split("?")[0];
+  let texte = null;
+  try { const r = await fetch(url + (url.includes("?") ? "&" : "?") + "t=" + Date.now(), { cache: "no-store" }); if (r.ok) texte = await r.text(); } catch (e) {}
+  try { if (texte !== null) localStorage.setItem(cle, texte); else texte = localStorage.getItem(cle); } catch (e) {}
+  if (texte === null) return null;
+  if (json) { try { return JSON.parse(texte); } catch (e) { return null; } }
+  return texte;
+}
+async function lireTableur(lien, copie) {
+  const valide = t => t && !/^\s*</.test(t);
+  let t = lien ? await chercher(lien, false) : null;
+  if (!valide(t)) t = await chercher(copie, false);
+  return valide(t) ? t : null;
+}
+
+/* ---------------- agenda ---------------- */
+function evenements(csvEvt, csvInd) {
+  const liste = parseCSV(csvEvt || "").map(l => ({ titre: l.titre, lieu: l.lieu, details: l.details, heure: l.heure, type: (l.type || "").toLowerCase(),
+    couleur: l.couleur, d1: lireDate(l.date_debut), d2: lireDate(l.date_fin) }));
+  parseCSV(csvInd || "").forEach(l => liste.push({ titre: (l.lieu || "Salle") + " indisponible", lieu: "", details: [l.motif, l.solution ? "À la place : " + l.solution : ""].filter(Boolean).join(". "),
+    heure: "", type: "indisponible", couleur: "", d1: lireDate(l.date_debut), d2: lireDate(l.date_fin) }));
+  return liste.filter(e => e.d1 && e.titre);
+}
+function rendreAgenda(csvEvt, csvInd) {
+  const auj = aujourdhui(), fin = plusJours(auj, CFG.HORIZON_JOURS_TEL);
+  const evts = evenements(csvEvt, csvInd).filter(e => (e.d2 || e.d1) >= auj && e.d1 <= fin).sort((a, b) => a.d1 - b.d1);
+
+  /* bandeau d'alerte : salle indisponible aujourd'hui */
+  const rougesToday = evts.filter(e => ROUGES.includes(e.type) && e.d1 <= auj);
+  $("alerte").innerHTML = rougesToday.length
+    ? `<div class="alerte">Indisponible aujourd'hui<small>${rougesToday.map(e => esc(e.titre)).join(" ; ")}</small></div>` : "";
+
+  if (!evts.length) { $("agenda").innerHTML = '<p class="vide">Aucun événement à venir.</p>'; return; }
+  let html = "", mois = "";
+  const types = new Set();
+  evts.forEach(e => {
+    const m = fmt(e.d1, { month: "long", year: "numeric" });
+    if (m !== mois) { html += `<h2>${esc(m)}</h2>`; mois = m; }
+    const rouge = ROUGES.includes(e.type);
+    const c = COULEURS[e.type] || e.couleur || "#3B8BD1";
+    if (e.type && COULEURS[e.type]) types.add(e.type);
+    const quand = (e.d2 && +e.d2 !== +e.d1 ? periode(e.d1, e.d2) : fmt(e.d1, { weekday: "long" })) + (e.heure ? ", " + e.heure : "");
+    const lieu = [e.lieu, nettoyer(e.details)].filter(Boolean).map(esc).join("<br>");
+    html += `<article class="evt ${rouge ? "rouge" : ""}" style="--c:${esc(c)}">
+      <div class="date"><span class="jour">${e.d1.getDate()}</span><span class="mois">${esc(fmt(e.d1, { month: "short" }))}</span></div>
+      <div>${rouge ? '<span class="tag">Salle indisponible</span>' : ""}<h3>${esc(e.titre)}</h3><p class="quand">${esc(quand)}</p>${lieu ? `<p>${lieu}</p>` : ""}</div></article>`;
+  });
+  html += '<div class="legende">' + [...types].map(t => `<span style="--c:${COULEURS[t]}"><i></i>${esc(LIBELLES[t])}</span>`).join("") + "</div>";
+  $("agenda").innerHTML = html;
+}
+
+/* ---------------- résultats ---------------- */
+function samediDe(d) { return plusJours(d, -((d.getDay() + 1) % 7)); }
+function libelleWeekend(sam) {
+  const dim = plusJours(sam, 1), jm = x => fmt(x, { day: "numeric", month: "long" });
+  return sam.getMonth() === dim.getMonth() ? `${sam.getDate()} et ${jm(dim)}` : `${jm(sam)} au ${jm(dim)}`;
+}
+function carte(c, ouverte) {
+  const lignes = c.groupes.flatMap(g => g.lignes.map(([nom, r, sc, aff]) => ({ nom, r, sc, aff, cat: g.titre, arc: g.arc })));
+  lignes.sort((a, b) => a.r - b.r || b.sc - a.sc || a.nom.localeCompare(b.nom, "fr"));
+  const med = [1, 2, 3].map(r => lignes.filter(l => l.r === r).length), podiums = med[0] + med[1] + med[2];
+  return `<details class="concours" ${ouverte ? "open" : ""}>
+    <summary><div><h3>${esc(c.nom)}</h3><p class="sous">${esc(c.format)}, ${esc(c.dates)}</p></div>
+      <div class="resume"><b>${lignes.length}</b> ${lignes.length > 1 ? "archers" : "archer"}<br><b>${podiums}</b> ${podiums > 1 ? "podiums" : "podium"}
+      <div class="med">${med.map((k, j) => `<span class="rang r${j + 1} ${k ? "" : "zero"}">${k}</span>`).join("")}</div></div></summary>
+    <div class="archers">${lignes.map(l => `<div class="ar ${l.arc}"><span class="rang ${l.r <= 3 ? "r" + l.r : ""}">${rang(l.r)}</span>
+      <span class="nom">${formatNom(l.nom)}<span class="cat">${esc(l.cat)}, ${esc(NOMS_ARC[l.arc] || "")}</span></span><span class="score">${esc(l.aff || l.sc)}</span></div>`).join("")}</div>
+  </details>`;
+}
+function rendreResultats(donnees) {
+  const auj = aujourdhui(), debut = plusJours(auj, -CFG.MAX_JOURS);
+  const dedans = ((donnees && donnees.concours) || []).map(c => ({ c, fin: lireDate(c.fin) })).filter(x => x.fin && x.fin >= debut && x.fin <= auj);
+  const parWeekend = new Map();
+  dedans.forEach(x => { const k = +samediDe(x.fin); if (!parWeekend.has(k)) parWeekend.set(k, []); parWeekend.get(k).push(x.c); });
+  const nb = c => c.groupes.reduce((a, g) => a + g.lignes.length, 0);
+  const cles = [...parWeekend.keys()].sort((a, b) => b - a).slice(0, CFG.NB_WEEKENDS);
+  if (!cles.length) { $("resultats").innerHTML = '<p class="vide">Pas de résultats récents.</p>'; return; }
+  let html = "";
+  cles.forEach((k, i) => {
+    html += `<h2>Week-end du ${esc(libelleWeekend(new Date(k)))}</h2>`;
+    parWeekend.get(k).sort((a, b) => nb(b) - nb(a)).forEach((c, j) => { html += carte(c, i === 0 && j === 0); });
+  });
+  $("resultats").innerHTML = html;
+}
+
+/* ---------------- chargement ---------------- */
+async function charger() {
+  const [res, evt, ind] = await Promise.all([
+    chercher("data/resultats.json", true),
+    lireTableur(CFG.SHEET_EVENEMENTS_CSV, "data/evenements.csv"),
+    lireTableur(CFG.SHEET_INDISPOS_CSV, "data/indisponibilites.csv")
+  ]);
+  rendreAgenda(evt, ind);
+  rendreResultats(res);
+  $("maj").textContent = "Mis à jour à " + fmt(new Date(), { hour: "2-digit", minute: "2-digit" });
+}
+$("club").textContent = CFG.CLUB_NOM;
+document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("actif", x === b));
+  $("agenda").hidden = b.dataset.v !== "agenda"; $("resultats").hidden = b.dataset.v !== "resultats";
+  window.scrollTo(0, 0);
+}));
+document.addEventListener("visibilitychange", () => { if (!document.hidden) charger(); });
+setInterval(charger, 10 * 60000);
+charger();
+</script>
+</body>
+</html>
