@@ -2,7 +2,7 @@ name: Résultats FFTA
 
 on:
   schedule:
-    - cron: "0 6 * * *"        # tous les jours à 6h UTC : les PDF sortent parfois plusieurs jours après, le tableur peut changer
+    - cron: "0 6 * * *"        # tous les jours à 6h UTC : les PDF sortent parfois plusieurs jours après
   workflow_dispatch:            # bouton « Run workflow » pour lancer à la main
     inputs:
       depuis:
