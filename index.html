@@ -66,6 +66,7 @@
   .nom { font-size: 1.9rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .nom b { font-weight: 600; }
   .score { font-family: var(--titre); font-weight: 700; font-size: 2.6rem; font-variant-numeric: tabular-nums; }
+  .score.multi { font-size: 1.85rem; line-height: 1.15; letter-spacing: .02em; white-space: nowrap; }
 
   .ouverture { justify-content: center; padding-right: 48%; }
   .club { font-family: var(--titre); font-weight: 600; font-size: 2rem; color: var(--or); letter-spacing: .04em; margin: 0 0 1.5rem; }
@@ -116,10 +117,13 @@
   .ar .nom { font-weight: 500; }
   .liste-archers.grand .ar { padding-top: .8rem; padding-bottom: .8rem; }
   .liste-archers.grand .nom { font-size: 2.4rem; } .liste-archers.grand .cat { font-size: 1.6rem; } .liste-archers.grand .score { font-size: 3.4rem; }
+  .liste-archers.grand .score.multi { font-size: 2.2rem; }
   .liste-archers.moyen .ar { padding-top: .45rem; padding-bottom: .45rem; }
   .liste-archers.moyen .nom { font-size: 1.9rem; } .liste-archers.moyen .cat { font-size: 1.3rem; } .liste-archers.moyen .score { font-size: 2.6rem; }
+  .liste-archers.moyen .score.multi { font-size: 1.7rem; }
   .liste-archers.compact .ar { padding-top: .3rem; padding-bottom: .3rem; gap: .8rem; }
   .liste-archers.compact .nom { font-size: 1.6rem; } .liste-archers.compact .cat { font-size: 1.15rem; } .liste-archers.compact .score { font-size: 2.3rem; }
+  .liste-archers.compact .score.multi { font-size: 1.45rem; }
   .liste-archers.compact .rang { height: 2.8rem; line-height: 2.5rem; width: 2.8rem; font-size: 1.4rem; }
   .legende { display: flex; flex-wrap: wrap; gap: 2.2rem; margin-top: 1.2rem; font-size: 1.3rem; color: var(--texte-doux); }
   .legende span { display: inline-flex; align-items: center; gap: .7rem; }
@@ -428,7 +432,7 @@ function ecransConcours(c, debutGroupe) {
         </div>
       </div>
       <div class="liste-archers ${taille}" style="--cols:${cols};--rows:${rows}">
-        ${page.map(l => `<div class="ar ${l.arc}"><span class="rang ${l.r <= 3 ? "r" + l.r : ""}">${rang(l.r)}</span><span class="nom">${formatNom(l.nom)}</span><span class="cat">${esc(l.cat)}</span><span class="score">${esc(l.sc)}</span></div>`).join("")}
+        ${page.map(l => `<div class="ar ${l.arc}"><span class="rang ${l.r <= 3 ? "r" + l.r : ""}">${rang(l.r)}</span><span class="nom">${formatNom(l.nom)}</span><span class="cat">${esc(l.cat)}</span><span class="score ${l.aff ? "multi" : ""}">${esc(l.aff || l.sc)}</span></div>`).join("")}
       </div>
       <div class="legende">${arcs.map(a => `<span><i class="${a}"></i>${esc(NOMS_ARC[a])}</span>`).join("")}</div>`;
     return section("", html, c.source, debutGroupe && i === 0);
