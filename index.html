@@ -29,12 +29,26 @@
     margin: 0; height: 100%; overflow: hidden; cursor: none;
     background: var(--fond); color: var(--texte);
     font-family: var(--corps); font-size: 1.5rem;
+    position: relative;
   }
-  #scene { position: relative; width: 100%; height: 100%; }
+  body::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("assets/logo-club.svg");
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: min(75vmin, 60rem);
+    opacity: 0.12;
+    pointer-events: none;
+    z-index: 0;
+  }
+  #scene { position: relative; width: 100%; height: 100%; z-index: 1; }
   .slide {
     position: absolute; inset: 0; padding: 3.5rem 5rem 6.5rem;
     display: flex; flex-direction: column;
     opacity: 0; visibility: hidden; transition: opacity .7s ease, visibility .7s;
+    z-index: 1;
   }
   .slide.actif { opacity: 1; visibility: visible; }
 
@@ -129,13 +143,44 @@
   .legende span { display: inline-flex; align-items: center; gap: .7rem; }
   .legende i { display: inline-block; width: .35rem; height: 1.4rem; background: none; border-left: .35rem solid var(--bleu); }
 
-  .evt { display: grid; grid-template-columns: 10rem 1fr auto; align-items: center; gap: 2.4rem; background: var(--fond-2); border-left: .5rem solid var(--bleu); padding: 1.3rem 2.2rem; }
-  .evt .date { text-align: center; font-family: var(--titre); line-height: 1; }
-  .evt .jour { display: block; font-size: 5rem; font-weight: 700; }
-  .evt .mois { display: block; font-size: 1.9rem; color: var(--or); font-weight: 600; margin-top: .3rem; }
+  .evt {
+    display: grid;
+    grid-template-columns: 9rem 1fr 12rem;
+    align-items: center;
+    gap: 2rem;
+    background: rgba(22, 47, 73, 0.9);
+    border-left: .5rem solid var(--bleu);
+    padding: 1.3rem 2.2rem;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.04);
+  }
+  .evt .date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 8.4rem;
+    padding: .7rem .8rem;
+    background: rgba(242, 194, 48, 0.1);
+    border: 1px solid rgba(242, 194, 48, 0.35);
+    border-radius: .8rem;
+    text-align: center;
+    font-family: var(--titre);
+    line-height: 1;
+  }
+  .evt .jour { display: block; font-size: 4.8rem; font-weight: 700; }
+  .evt .mois { display: block; font-size: 1.8rem; color: var(--or); font-weight: 600; margin-top: .3rem; }
   .evt h3 { font-family: var(--titre); font-weight: 600; font-size: 3rem; line-height: 1.05; margin: 0 0 .4rem; }
-  .evt p { margin: 0; font-size: 1.7rem; color: var(--texte-doux); }
-  .evt .heure { font-family: var(--titre); font-weight: 700; font-size: 3rem; }
+  .evt p { margin: 0; font-size: 1.55rem; color: var(--texte-doux); }
+  .evt .heure {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    padding: .7rem .8rem;
+    border-left: 1px solid var(--trait);
+    font-family: var(--titre); font-weight: 700; font-size: 2.7rem; line-height: 1;
+    color: var(--or);
+  }
 
   .ind { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2rem; background: var(--fond-2); border-left: .5rem solid var(--rouge); padding: 1.4rem 2.2rem; }
   .ind h3 { font-family: var(--titre); font-weight: 700; font-size: 3.4rem; line-height: 1.05; margin: 0 0 .4rem; }
@@ -154,13 +199,14 @@
     padding: 1.4rem 5rem 1.6rem;
     display: flex; justify-content: space-between; align-items: center;
     font-size: 1.3rem; color: var(--texte-doux);
+    z-index: 2;
   }
   .points { display: flex; gap: .7rem; align-items: center; }
   .points i { width: 1.1rem; height: 1.1rem; border-radius: 50%; background: var(--trait); transition: background .3s; }
   .points i.actif { background: var(--or); }
   .points i.debut { margin-left: 1.1rem; }
   .points i.debut:first-child { margin-left: 0; }
-  .barre { position: absolute; left: 0; bottom: 0; height: .35rem; background: var(--or); width: 0; }
+  .barre { position: absolute; left: 0; bottom: 0; height: .35rem; background: var(--or); width: 0; z-index: 3; }
   .barre.va { animation: avance var(--duree) linear forwards; }
   @keyframes avance { from { width: 0; } to { width: 100%; } }
 
@@ -185,7 +231,7 @@
     .lc > div:first-child { grid-column: 1 / -1; }
     .lc .med { justify-content: flex-start; }
     .evt { grid-template-columns: 7rem 1fr; }
-    .evt .heure { grid-column: 2; }
+    .evt .heure { grid-column: 2; border-left: none; border-top: 1px solid var(--trait); justify-content: flex-start; padding-top: 1rem; }
     .ind { grid-template-columns: 1fr; }
     .pied { padding: 1rem 2rem 1.2rem; background: var(--fond); }
   }
