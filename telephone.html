@@ -19,6 +19,10 @@
   html { -webkit-text-size-adjust: 100%; }
   body { margin: 0; background: var(--fond); color: var(--texte); font-family: var(--corps); font-size: 16px; line-height: 1.35;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  /* logo du club en filigrane (le fichier logo-fond.png doit être à la racine du dépôt) */
+  body::before { content: none !important; }
+  .filigrane { position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: url("logo-fond.png") center 42% / min(92vw, 75vh) no-repeat; opacity: .12; }
   header { padding: 18px 16px 6px; }
   header h1 { margin: 0; font-family: var(--titre); font-weight: 700; font-size: 30px; line-height: 1; }
   header p { margin: 4px 0 0; font-size: 13px; color: var(--texte-doux); }
@@ -33,9 +37,9 @@
   .vide { color: var(--texte-doux); text-align: center; margin: 40px 0; }
 
   /* agenda */
-  .evt { --c: var(--bleu); display: grid; grid-template-columns: 56px 1fr; gap: 12px; background: var(--fond-2); border-left: 6px solid var(--c);
+  .evt { --c: var(--bleu); display: grid; grid-template-columns: 56px 1fr; gap: 12px; background: rgba(22, 47, 73, .82); border-left: 6px solid var(--c);
     border-radius: 0 10px 10px 0; padding: 12px 12px 12px 10px; margin-bottom: 10px; }
-  .evt.rouge { background: #3a2230; }
+  .evt.rouge { background: rgba(58, 34, 48, .88); }
   .evt .date { text-align: center; font-family: var(--titre); line-height: 1; }
   .evt .jour { display: block; font-size: 34px; font-weight: 700; }
   .evt .mois { display: block; font-size: 14px; font-weight: 600; color: var(--c); text-transform: uppercase; margin-top: 2px; }
@@ -48,7 +52,7 @@
   .legende i { width: 6px; height: 14px; border-radius: 2px; background: var(--c); }
 
   /* résultats */
-  details.concours { background: var(--fond-2); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+  details.concours { background: rgba(22, 47, 73, .82); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
   details.concours > summary { list-style: none; cursor: pointer; padding: 14px; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
   details.concours > summary::-webkit-details-marker { display: none; }
   .concours h3 { margin: 0; font-family: var(--titre); font-weight: 600; font-size: 22px; line-height: 1.1; }
@@ -74,6 +78,7 @@
 <script src="config.js"></script>
 </head>
 <body>
+<div class="filigrane" aria-hidden="true"></div>
 <header><h1 id="club"></h1><p id="maj"></p></header>
 <div id="alerte"></div>
 <nav><button data-v="agenda" class="actif">Agenda</button><button data-v="resultats">Résultats</button></nav>
@@ -84,7 +89,7 @@
 
 <script>
 const CFG = Object.assign({
-  CLUB_NOM: "Archers de l'Erdre", NB_WEEKENDS: 3, MAX_JOURS: 45, HORIZON_JOURS_TEL: 90,
+  CLUB_NOM: "Archers de l'Erdre", NB_WEEKENDS: 3, MAX_JOURS: 45, HORIZON_JOURS_TEL: 30,
   SHEET_EVENEMENTS_CSV: "data/evenements.csv", SHEET_INDISPOS_CSV: ""
 }, window.CONFIG || {});
 
