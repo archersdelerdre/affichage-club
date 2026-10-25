@@ -17,12 +17,18 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "data" / "evenements.csv"
+OUT_INFOS = ROOT / "data" / "infos.csv"
 DEFAULT_URL = "https://calendar.google.com/calendar/ical/secretaire.archerserdre%40gmail.com/public/basic.ics"
 LOCAL_TZ = ZoneInfo("Europe/Paris")
 JOURS_PASSE = 7        # on garde les événements des 7 derniers jours
 JOURS_FUTUR = 400      # et ceux des 400 prochains
 FERIES_AUTOMATIQUES = True   # ajoute chaque jour férié français comme « pas de tir »
 CHAMPS = ["date_debut", "date_fin", "heure", "titre", "lieu", "details", "couleur", "type"]
+CHAMPS_INFOS = ["date_debut", "date_fin", "titre", "lien", "details"]
+
+# Un événement du calendrier dont le titre commence par « Lien : », « Info : » ou « Document : » devient une ligne
+# d'information (avec son lien) affichée sur la page téléphone pendant les jours de l'événement. Il n'est pas dans l'agenda.
+INFO_RE = re.compile(r"^\s*(lien|infos?|document|doc)\s*[:\-–]\s*(.+)$", re.I)
 
 # Les mots sont cherchés « entiers » : « concours » ne doit pas être pris pour « cours ».
 TYPES = [
@@ -83,6 +89,12 @@ def jours_feries(annee):
         date(annee, 11, 11): "Armistice 1918",
         date(annee, 12, 25): "Noël",
     }
+
+
+def trouver_lien(texte):
+    """Premier lien http(s) trouvé dans un texte (description ou lieu de l'événement)."""
+    m = re.search(r"https?://[^\s\"<>')]+", html.unescape(texte or ""))
+    return m.group(0).rstrip(".,;") if m else ""
 
 
 def as_text(value):
@@ -157,7 +169,7 @@ def main():
     evenements = recurring_ical_events.of(cal).between(
         aujourdhui - timedelta(days=JOURS_PASSE), aujourdhui + timedelta(days=JOURS_FUTUR))
 
-    lignes, vus, feries_calendrier = [], set(), set()
+    lignes, vus, feries_calendrier, infos = [], set(), set(), []
     for ev in evenements:
         if as_text(ev.get("status")).upper() == "CANCELLED":
             continue
@@ -172,6 +184,15 @@ def main():
             duree = ev.get("duration")
             fin = debut + (duree.dt if duree else (timedelta(days=1) if not isinstance(debut, datetime) else timedelta(hours=1)))
         d1, d2, heure = dates_et_heure(debut, fin)
+        m_info = INFO_RE.match(titre)
+        if m_info:
+            infos.append({
+                "date_debut": d1.isoformat(), "date_fin": d2.isoformat() if d2 else "",
+                "titre": m_info.group(2).strip(),
+                "lien": trouver_lien(as_text(ev.get("description")) + " " + as_text(ev.get("location"))),
+                "details": details,
+            })
+            continue
         cle = (d1.isoformat(), d2.isoformat() if d2 else "", titre, lieu)
         if cle + (details,) in vus:
             continue
@@ -206,6 +227,13 @@ def main():
         ecrivain.writeheader()
         ecrivain.writerows(lignes)
     print(f"{len(lignes)} événements écrits dans {OUT}")
+
+    infos.sort(key=lambda x: (x["date_debut"], x["titre"]))
+    with OUT_INFOS.open("w", encoding="utf-8", newline="") as fh:
+        ecrivain = csv.DictWriter(fh, fieldnames=CHAMPS_INFOS)
+        ecrivain.writeheader()
+        ecrivain.writerows(infos)
+    print(f"{len(infos)} information(s) écrite(s) dans {OUT_INFOS}")
 
 
 if __name__ == "__main__":
