@@ -19,11 +19,7 @@ date_debut,date_fin,heure,titre,lieu,details,couleur,type
 2026-11-09,,20:00,Cours intermédiaire/compétiteurs - Loïc,,,#3B8BD1,cours
 2026-11-10,,17:30,Cours jeunes débutants - Nathanaël,,,#3B8BD1,cours
 2026-11-10,,19:00,Cours adultes intermédiaire - Jean Luc,,,#3B8BD1,cours
-2026-11-11,,14:00,Cours jeunes débutants - Nathanaël,,,#3B8BD1,cours
-2026-11-11,,16:00,Cours jeunes confirmés - Nathanaël,,,#3B8BD1,cours
-2026-11-11,,18:00,Cours compétiteurs - Nathanaël,,,#3B8BD1,cours
-2026-11-11,,18:00,Cours renfo musculaire - Yohan,,,#3B8BD1,cours
-2026-11-11,,20:00,Cours compétiteurs - Loïc,,,#3B8BD1,cours
+2026-11-11,,,JOUR FERIE SALLE INSISPONIBLE,,,#D9442F,ferie
 2026-11-12,,17:30,Cours jeunes débutants - Yohan,,,#3B8BD1,cours
 2026-11-12,,19:00,Cours adultes débutants - Vincent,,,#3B8BD1,cours
 2026-11-13,,10:00,Cours Vinci,,,#3B8BD1,cours
@@ -97,6 +93,7 @@ date_debut,date_fin,heure,titre,lieu,details,couleur,type
 2026-12-18,,20:00,Cours adultes débutants - Benjamin,,,#3B8BD1,cours
 2026-12-19,2027-01-03,,Vacances,,,#CD8B4A,vacances
 2026-12-19,,10:00,Créneau encadré - TBD,,,#3B8BD1,
+2026-12-25,,,JOUR FERIE SALLE INDISPONIBLE,,,#D9442F,indisponible
 2027-01-04,,20:00,Cours intermédiaire/compétiteurs - Loïc,,,#3B8BD1,cours
 2027-01-05,,17:30,Cours jeunes débutants - Nathanaël,,,#3B8BD1,cours
 2027-01-05,,19:00,Cours adultes intermédiaire - Jean Luc,,,#3B8BD1,cours
@@ -194,8 +191,8 @@ date_debut,date_fin,heure,titre,lieu,details,couleur,type
 2027-03-10,,20:00,Cours compétiteurs - Loïc,,,#3B8BD1,cours
 2027-03-11,,17:30,Cours jeunes débutants - Yohan,,,#3B8BD1,cours
 2027-03-11,,19:00,Cours adultes débutants - Vincent,,,#3B8BD1,cours
-2027-03-12,,18:00,Prestation Anëlle Florent,,,#3B8BD1,
 2027-03-12,,20:00,Cours adultes débutants - Benjamin,,,#3B8BD1,cours
+2027-03-12,,20:00,Prestation Anëlle Florent,,,#3B8BD1,
 2027-03-13,,10:00,Créneau encadré - TBD,,,#3B8BD1,
 2027-03-15,,20:00,Cours intermédiaire/compétiteurs - Loïc,,,#3B8BD1,cours
 2027-03-16,,17:30,Cours jeunes débutants - Nathanaël,,,#3B8BD1,cours
