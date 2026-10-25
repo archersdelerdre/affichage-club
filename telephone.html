@@ -30,6 +30,11 @@
   .alerte small { display: block; font-weight: 400; opacity: .95; }
   .alerte.orange { background: #f08a24; color: #1b1000; }
   .tag.orange { background: #f08a24; color: #1b1000; }
+  .info { margin: 10px 16px 0; padding: 12px 14px; background: rgba(242, 194, 48, .13); border-left: 5px solid var(--or); border-radius: 0 10px 10px 0;
+    display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+  .info b { font-weight: 600; }
+  .info small { display: block; color: var(--texte-doux); font-size: 13px; margin-top: 2px; }
+  .info a { flex: none; background: var(--or); color: #1b1500; font-weight: 700; text-decoration: none; padding: 8px 14px; border-radius: 999px; }
   nav { position: sticky; top: 0; z-index: 5; display: flex; gap: 8px; padding: 10px 16px; background: var(--fond); border-bottom: 1px solid var(--trait); margin-top: 8px; }
   nav button { flex: 1; font: inherit; font-weight: 600; font-size: 16px; padding: 10px 0; border-radius: 999px; border: 1px solid var(--trait); background: none; color: var(--texte-doux); }
   nav button.actif { background: var(--or); border-color: var(--or); color: #1b1500; }
@@ -66,6 +71,8 @@
   details.concours > summary::-webkit-details-marker { display: none; }
   .concours h3 { margin: 0; font-family: var(--titre); font-weight: 600; font-size: 22px; line-height: 1.1; }
   .concours .sous { margin: 3px 0 0; font-size: 13px; color: var(--texte-doux); }
+  .concours .maj-fftA { font-style: italic; }
+  .majfft { margin: 12px 0 0; font-size: 13px; color: var(--texte-doux); }
   .resume { text-align: right; font-size: 13px; color: var(--texte-doux); white-space: nowrap; }
   .resume b { font-family: var(--titre); font-size: 22px; color: var(--texte); }
   .med { display: flex; gap: 4px; justify-content: flex-end; margin-top: 4px; }
@@ -90,6 +97,7 @@
 <div class="filigrane" aria-hidden="true"></div>
 <header><h1 id="club"></h1><p id="maj"></p></header>
 <div id="alerte"></div>
+<div id="infos"></div>
 <nav><button data-v="agenda" class="actif">Agenda</button><button data-v="resultats">Résultats</button></nav>
 <main>
   <section id="agenda"></section>
@@ -242,6 +250,18 @@ $("agenda").addEventListener("click", ev => {
   dessinerAgenda();
 });
 
+/* ---------------- informations et liens partagés (calendrier : « Lien : titre ») ---------------- */
+function rendreInfos(csv) {
+  const auj = aujourdhui();
+  const infos = parseCSV(csv || "").map(l => ({ titre: l.titre, lien: l.lien, details: l.details, d1: lireDate(l.date_debut), d2: lireDate(l.date_fin) }))
+    .filter(i => i.titre && i.d1 && i.d1 <= auj && (i.d2 || i.d1) >= auj);
+  $("infos").innerHTML = infos.map(i => {
+    const lien = /^https?:\/\//i.test(i.lien) ? i.lien : "";
+    return `<div class="info"><div><b>${esc(i.titre)}</b>${i.details ? `<small>${esc(i.details)}</small>` : ""}</div>` +
+      (lien ? `<a href="${esc(lien)}" target="_blank" rel="noopener noreferrer">Ouvrir</a>` : "") + "</div>";
+  }).join("");
+}
+
 /* ---------------- résultats ---------------- */
 function samediDe(d) { return plusJours(d, -((d.getDay() + 1) % 7)); }
 function libelleWeekend(sam) {
@@ -253,7 +273,7 @@ function carte(c, ouverte) {
   lignes.sort((a, b) => a.r - b.r || b.sc - a.sc || a.nom.localeCompare(b.nom, "fr"));
   const med = [1, 2, 3].map(r => lignes.filter(l => l.r === r).length), podiums = med[0] + med[1] + med[2];
   return `<details class="concours" ${ouverte ? "open" : ""}>
-    <summary><div><h3>${esc(c.nom)}</h3><p class="sous">${esc(c.format)}, ${esc(c.dates)}</p></div>
+    <summary><div><h3>${esc(c.nom)}</h3><p class="sous">${esc(c.format)}, ${esc(c.dates)}</p>${c.source ? `<p class="sous maj-fftA">${esc(String(c.source).replace(/^Source : classement officiel FFTA/, "Classement FFTA"))}</p>` : ""}</div>
       <div class="resume"><b>${lignes.length}</b> ${lignes.length > 1 ? "archers" : "archer"}<br><b>${podiums}</b> ${podiums > 1 ? "podiums" : "podium"}
       <div class="med">${med.map((k, j) => `<span class="rang r${j + 1} ${k ? "" : "zero"}">${k}</span>`).join("")}</div></div></summary>
     <div class="archers">${lignes.map(l => `<div class="ar ${l.arc}"><span class="rang ${l.r <= 3 ? "r" + l.r : ""}">${rang(l.r)}</span>
@@ -268,7 +288,8 @@ function rendreResultats(donnees) {
   const nb = c => c.groupes.reduce((a, g) => a + g.lignes.length, 0);
   const cles = [...parWeekend.keys()].sort((a, b) => b - a).slice(0, CFG.NB_WEEKENDS);
   if (!cles.length) { $("resultats").innerHTML = '<p class="vide">Pas de résultats récents.</p>'; return; }
-  let html = "";
+  const verif = donnees && lireDate(donnees.maj);
+  let html = verif ? `<p class="majfft">Site de la FFTA consulté le ${esc(fmt(verif, { day: "numeric", month: "long", year: "numeric" }))}</p>` : "";
   cles.forEach((k, i) => {
     html += `<h2>Week-end du ${esc(libelleWeekend(new Date(k)))}</h2>`;
     parWeekend.get(k).sort((a, b) => nb(b) - nb(a)).forEach((c, j) => { html += carte(c, i === 0 && j === 0); });
@@ -278,11 +299,13 @@ function rendreResultats(donnees) {
 
 /* ---------------- chargement ---------------- */
 async function charger() {
-  const [res, evt, ind] = await Promise.all([
+  const [res, evt, ind, inf] = await Promise.all([
     chercher("data/resultats.json", true),
     lireTableur(CFG.SHEET_EVENEMENTS_CSV, "data/evenements.csv"),
-    lireTableur(CFG.SHEET_INDISPOS_CSV, "data/indisponibilites.csv")
+    lireTableur(CFG.SHEET_INDISPOS_CSV, "data/indisponibilites.csv"),
+    lireTableur(null, "data/infos.csv")
   ]);
+  rendreInfos(inf);
   rendreAgenda(evt, ind);
   rendreResultats(res);
   $("maj").textContent = "Mis à jour à " + fmt(new Date(), { hour: "2-digit", minute: "2-digit" });
