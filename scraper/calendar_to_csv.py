@@ -4,8 +4,7 @@
 Colonnes de data/evenements.csv : date_debut, date_fin, heure, titre, lieu, details, couleur, type
 - les événements récurrents sont dépliés (bibliothèque recurring-ical-events) ;
 - un événement « toute la journée » finit la veille de la date de fin du calendrier (la fin y est exclusive) ;
-- le « type » est deviné d'après le titre ; une valeur corrigée à la main dans le CSV est conservée.
-- la couleur du bandeau dépend du type (rouge = salle indisponible).
+- le « type » est deviné d'après le titre et la description, à chaque mise à jour.
 """
 import csv
 import html
@@ -22,12 +21,16 @@ DEFAULT_URL = "https://calendar.google.com/calendar/ical/secretaire.archerserdre
 LOCAL_TZ = ZoneInfo("Europe/Paris")
 JOURS_PASSE = 7        # on garde les événements des 7 derniers jours
 JOURS_FUTUR = 400      # et ceux des 400 prochains
+FERIES_AUTOMATIQUES = True   # ajoute chaque jour férié français comme « pas de tir »
 CHAMPS = ["date_debut", "date_fin", "heure", "titre", "lieu", "details", "couleur", "type"]
 
 # Les mots sont cherchés « entiers » : « concours » ne doit pas être pris pour « cours ».
 TYPES = [
-    # rouge : la salle ou le terrain n'est pas utilisable
-    ("indisponible", r"indisponib|salle ferm[ée]e?|\bferm[ée]e?s?\b|fermeture|salle occup[ée]e?|pas d['e ]?\s?entra[iî]nement|annul[ée]"),
+    # orange : un cours ou un entraînement n'a pas lieu (quelle qu'en soit la raison)
+    ("annule", r"annul[ée]|pas d['e ]?\s?entra[iî]nement|pas de cours|cours supprim"),
+    # rouge : pas de tir (salle ou terrain inutilisable, jour férié)
+    ("indisponible", r"(salle|gymnase|terrain|stand|local|complexe|site)\b[^.\n]{0,40}(indisponib|ferm[ée]|occup[ée]|inaccessible|inond)"
+                     r"|indisponibilit[ée] (de la |du |de l')?(salle|gymnase|terrain|stand)|fermeture|\bferm[ée]e?s?\b|terrain inond"),
     ("ferie", r"f[ée]ri[ée]"),
     ("vacances", r"vacances"),
     ("concours", r"\bconcours\b"),
@@ -42,11 +45,44 @@ TYPES = [
 
 # Couleur du petit bandeau de chaque événement selon son type (rouge = salle indisponible)
 COULEURS_TYPES = {
-    "indisponible": "#D9442F", "ferie": "#D9442F", "vacances": "#CD8B4A",
+    "indisponible": "#D9442F", "ferie": "#D9442F", "annule": "#F08A24", "vacances": "#CD8B4A",
     "concours": "#F2C230", "tournoi": "#F2C230", "stage": "#4CAF7A",
     "formation": "#8E6BD1", "examen": "#8E6BD1", "reunion": "#A9BACB",
     "soiree": "#E26FA6", "cours": "#3B8BD1",
 }
+
+
+def paques(annee):
+    """Date de Pâques (calendrier grégorien)."""
+    a, b, c = annee % 19, annee // 100, annee % 100
+    d, e = b // 4, b % 4
+    f = (b + 8) // 25
+    g = (b - f + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = c // 4, c % 4
+    l = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * l) // 451
+    mois = (h + l - 7 * m + 114) // 31
+    jour = (h + l - 7 * m + 114) % 31 + 1
+    return date(annee, mois, jour)
+
+
+def jours_feries(annee):
+    """Les 11 jours fériés de la France métropolitaine : {date: nom}."""
+    p = paques(annee)
+    return {
+        date(annee, 1, 1): "Jour de l'An",
+        p + timedelta(days=1): "Lundi de Pâques",
+        date(annee, 5, 1): "Fête du Travail",
+        date(annee, 5, 8): "Victoire 1945",
+        p + timedelta(days=39): "Ascension",
+        p + timedelta(days=50): "Lundi de Pentecôte",
+        date(annee, 7, 14): "Fête nationale",
+        date(annee, 8, 15): "Assomption",
+        date(annee, 11, 1): "Toussaint",
+        date(annee, 11, 11): "Armistice 1918",
+        date(annee, 12, 25): "Noël",
+    }
 
 
 def as_text(value):
@@ -106,26 +142,6 @@ def dates_et_heure(debut, fin):
     return debut, (fin_date if fin_date != debut else None), ""
 
 
-def read_existing_types(chemin):
-    """Types corrigés à la main dans le CSV : on les garde à chaque régénération."""
-    surcharges = {}
-    if not chemin.exists():
-        return surcharges
-    try:
-        with chemin.open("r", encoding="utf-8", newline="") as fh:
-            lecteur = csv.DictReader(fh)
-            if not lecteur.fieldnames or "type" not in lecteur.fieldnames:
-                return surcharges
-            for ligne in lecteur:
-                cle = tuple((ligne.get(c) or "").strip() for c in ("date_debut", "date_fin", "titre", "lieu"))
-                valeur = (ligne.get("type") or "").strip()
-                if valeur:
-                    surcharges[cle] = valeur
-    except Exception:
-        return {}
-    return surcharges
-
-
 def main():
     import recurring_ical_events
     import requests
@@ -141,8 +157,7 @@ def main():
     evenements = recurring_ical_events.of(cal).between(
         aujourdhui - timedelta(days=JOURS_PASSE), aujourdhui + timedelta(days=JOURS_FUTUR))
 
-    surcharges = read_existing_types(OUT)
-    lignes, vus = [], set()
+    lignes, vus, feries_calendrier = [], set(), set()
     for ev in evenements:
         if as_text(ev.get("status")).upper() == "CANCELLED":
             continue
@@ -161,13 +176,28 @@ def main():
         if cle + (details,) in vus:
             continue
         vus.add(cle + (details,))
-        type_ev = surcharges.get(cle) or infer_type(titre, lieu, details)
+        type_ev = infer_type(titre, lieu, details)
+        if type_ev == "ferie":                      # jour férié : on n'affiche que « Pas de tir indisponible »
+            feries_calendrier.add(d1.isoformat())
+            titre, lieu, details, type_ev = "Pas de tir indisponible", "", "", "indisponible"
         lignes.append({
             "date_debut": cle[0], "date_fin": cle[1], "heure": heure,
             "titre": titre, "lieu": lieu, "details": details,
             "couleur": COULEURS_TYPES.get(type_ev) or normalize_color(ev.get("color")) or couleur_calendrier or "#3B8BD1",
             "type": type_ev,
         })
+
+    if FERIES_AUTOMATIQUES:
+        debut_f, fin_f = aujourdhui - timedelta(days=JOURS_PASSE), aujourdhui + timedelta(days=JOURS_FUTUR)
+        deja = set(feries_calendrier)
+        for annee in range(debut_f.year, fin_f.year + 1):
+            for jour, nom in sorted(jours_feries(annee).items()):
+                if debut_f <= jour <= fin_f and jour.isoformat() not in deja:
+                    lignes.append({
+                        "date_debut": jour.isoformat(), "date_fin": "", "heure": "",
+                        "titre": "Pas de tir indisponible", "lieu": "", "details": "",
+                        "couleur": COULEURS_TYPES["indisponible"], "type": "indisponible",
+                    })
 
     lignes.sort(key=lambda x: (x["date_debut"], x["heure"], x["titre"]))
     OUT.parent.mkdir(parents=True, exist_ok=True)
