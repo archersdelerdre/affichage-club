@@ -4,13 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f2236">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icone-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Archers Erdre">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Archers de l'Erdre</title>
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="logo-fond.png">
-<link rel="icon" href="logo-fond.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
@@ -34,7 +35,6 @@
   header p { margin: 4px 0 0; font-size: 13px; color: var(--texte-doux); }
   .alerte { margin: 10px 16px 0; padding: 12px 14px; background: var(--rouge); color: #fff; border-radius: 10px; font-weight: 600; }
   .alerte small { display: block; font-weight: 400; opacity: .95; }
-  .alerte.orange { background: #f08a24; color: #1b1000; }
   .alerte.orange { background: #f08a24; color: #1b1000; }
   .tag.orange { background: #f08a24; color: #1b1000; }
   .info { margin: 10px 16px 0; padding: 12px 14px; background: rgba(242, 194, 48, .13); border-left: 5px solid var(--or); border-radius: 0 10px 10px 0;
@@ -61,7 +61,7 @@
   .evt h3 { margin: 0 0 2px; font-family: var(--titre); font-weight: 600; font-size: 21px; line-height: 1.1; }
   .evt p { margin: 2px 0 0; font-size: 14px; color: var(--texte-doux); }
   .evt .quand { color: var(--texte); }
-  .tag { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: var(--rouge); color: #fff; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: var(--rouge); color: #fff; margin-bottom: 4px; }
   .puces { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 0 2px; }
   .puce { --c: var(--or); font: inherit; font-size: 14px; font-weight: 600; padding: 7px 13px; border-radius: 999px; cursor: pointer;
     border: 1.5px solid var(--c); background: none; color: var(--texte); display: inline-flex; align-items: center; gap: 7px; }
@@ -90,7 +90,7 @@
   .rang.r3 { background: var(--bronze); border-color: var(--bronze); color: #1d1105; }
   .rang.zero { background: none; border-color: var(--trait); color: var(--texte-doux); }
   .archers { border-top: 1px solid var(--trait); }
-  .ar { display: grid; grid-template-columns: 32px 1fr auto; gap: 10px; align-items: center; padding: 9px 14px 9px 11px; border-bottom: 1px solid var(--trait); border-left: 4px solid var(--bleu); background: rgba(255,255,255,.02); }
+  .ar { display: grid; grid-template-columns: 32px 1fr auto; gap: 10px; align-items: center; padding: 9px 14px 9px 11px; border-bottom: 1px solid var(--trait); border-left: 4px solid var(--bleu); }
   .ar.poulies { border-left-color: var(--rouge); } .ar.nu { border-left-color: var(--or); }
   .ar.droit { border-left-color: var(--argent); } .ar.autre { border-left-color: var(--bronze); }
   .ar .nom { font-weight: 500; }
@@ -127,7 +127,7 @@ const AVEC_ETIQUETTE = ["indisponible", "ferie", "annule"];   /* types qui affic
 const NOMS_ARC = { classique: "Arc classique", poulies: "Arc à poulies", nu: "Arc nu", droit: "Arc droit", autre: "Autres" };
 
 const $ = id => document.getElementById(id);
-const esc = s => String(s == null ? "" : s).replace(/[&<>\"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const fmt = (d, o) => new Intl.DateTimeFormat("fr-FR", o).format(d);
 function plusJours(d, n) { const r = new Date(d.getFullYear(), d.getMonth(), d.getDate()); r.setDate(r.getDate() + n); return r; }
 function aujourdhui() { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
@@ -193,7 +193,7 @@ async function lireTableur(lien, copie) {
 function evenements(csvEvt, csvInd) {
   const liste = parseCSV(csvEvt || "").map(l => ({ titre: l.titre, lieu: l.lieu, details: l.details, heure: l.heure, type: (l.type || "").toLowerCase(),
     couleur: l.couleur, d1: lireDate(l.date_debut), d2: lireDate(l.date_fin) }));
-  parseCSV(csvInd || "").forEach(l => liste.push({ titre: l.lieu ? "Pas de tir indisponible : " + l.lieu : "Pas de tir indisponible", lieu: "", details: [l.motif, l.solution ? "À la place : " + l.solution : ""].filter(Boolean).join(" — "),
+  parseCSV(csvInd || "").forEach(l => liste.push({ titre: l.lieu ? "Pas de tir indisponible : " + l.lieu : "Pas de tir indisponible", lieu: "", details: [l.motif, l.solution ? "À la place : " + l.solution : ""].filter(Boolean).join(". "),
     heure: "", type: "indisponible", couleur: "", d1: lireDate(l.date_debut), d2: lireDate(l.date_fin) }));
   return liste.filter(e => e.d1 && e.titre);
 }
@@ -230,8 +230,7 @@ function dessinerAgenda() {
   FILTRES = new Set([...FILTRES].filter(t => presents.includes(t)));
   const puces = presents.length > 1
     ? '<div class="puces">' + `<button class="puce ${FILTRES.size ? "" : "actif"}" data-t="*">Tout</button>` +
-      presents.map(t => `<button class="puce ${FILTRES.has(t) ? "actif" : ""}" data-t="${t}" style="--c:${COULEURS[t] || "#3B8BD1"}"><i></i>${esc(t ? LIBELLES[t] : "Autres")}</button>`).join("") + '</div>'
-    : '';
+      presents.map(t => `<button class="puce ${FILTRES.has(t) ? "actif" : ""}" data-t="${t}" style="--c:${COULEURS[t] || "#3B8BD1"}"><i></i>${esc(t ? LIBELLES[t] : "Autres")}</button>`).join("") + "</div>" : "";
 
   const visibles = FILTRES.size ? evts.filter(e => FILTRES.has(typeDe(e))) : evts;
   let html = "", mois = "";
@@ -281,7 +280,7 @@ function carte(c, ouverte) {
   lignes.sort((a, b) => a.r - b.r || b.sc - a.sc || a.nom.localeCompare(b.nom, "fr"));
   const med = [1, 2, 3].map(r => lignes.filter(l => l.r === r).length), podiums = med[0] + med[1] + med[2];
   return `<details class="concours" ${ouverte ? "open" : ""}>
-    <summary><div><h3>${esc(c.nom)}</h3><p class="sous">${esc(c.format)}, ${esc(c.dates)}</p>${c.source ? `<p class="sous maj-fftA">${esc(String(c.source).replace(/^Source : /, ""))}</p>` : ""}</div>
+    <summary><div><h3>${esc(c.nom)}</h3><p class="sous">${esc(c.format)}, ${esc(c.dates)}</p>${c.source ? `<p class="sous maj-fftA">${esc(String(c.source).replace(/^Source : classement officiel FFTA/, "Classement FFTA"))}</p>` : ""}</div>
       <div class="resume"><b>${lignes.length}</b> ${lignes.length > 1 ? "archers" : "archer"}<br><b>${podiums}</b> ${podiums > 1 ? "podiums" : "podium"}
       <div class="med">${med.map((k, j) => `<span class="rang r${j + 1} ${k ? "" : "zero"}">${k}</span>`).join("")}</div></div></summary>
     <div class="archers">${lignes.map(l => `<div class="ar ${l.arc}"><span class="rang ${l.r <= 3 ? "r" + l.r : ""}">${rang(l.r)}</span>
@@ -326,13 +325,9 @@ document.querySelectorAll("nav button").forEach(b => b.addEventListener("click",
 }));
 document.addEventListener("visibilitychange", () => { if (!document.hidden) charger(); });
 setInterval(charger, 10 * 60000);
+/* application installable et utilisable hors connexion */
+if (typeof navigator !== "undefined" && "serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 charger();
-
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("service-worker.js").catch(() => {});
-  });
-}
 </script>
 </body>
 </html>
