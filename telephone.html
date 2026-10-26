@@ -344,6 +344,7 @@ document.querySelectorAll("nav button").forEach(b => b.addEventListener("click",
   document.querySelectorAll("nav button").forEach(x => x.classList.toggle("actif", x === b));
   $("agenda").hidden = b.dataset.v !== "agenda"; $("resultats").hidden = b.dataset.v !== "resultats";
   $("podiums").hidden = b.dataset.v !== "resultats";
+  $("infos").hidden = b.dataset.v !== "agenda";          /* les lignes « Document / Lien » ne s'affichent que sur l'onglet Agenda */
   window.scrollTo(0, 0);
 }));
 document.addEventListener("visibilitychange", () => { if (!document.hidden) charger(); });
