@@ -1,6 +1,28 @@
 {
- "maj": "2026-10-25",
+ "maj": "2026-10-26",
  "concours": [
+  {
+   "nom": "Tir en Salle 18M la Haye Fouassière",
+   "format": "Tir à 18m (2X18M)",
+   "dates": "25 octobre 2026",
+   "fin": "2026-10-25",
+   "totalArchers": 88,
+   "source": "Source : classement officiel FFTA du 25 octobre 2026",
+   "groupes": [
+    {
+     "arc": "poulies",
+     "titre": "Senior 2 Homme",
+     "lignes": [
+      [
+       "Ioan LE GUE",
+       5,
+       567
+      ]
+     ]
+    }
+   ],
+   "id": "https://extranet.ffta.fr/pdfresultats/2026/S_1244013_20261025_79059.pdf"
+  },
   {
    "nom": "Tir Beursault Dans un JEU d'Arc",
    "format": "Tir Beursault (Beursault sélectif)",
