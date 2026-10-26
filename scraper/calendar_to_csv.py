@@ -28,7 +28,8 @@ CHAMPS_INFOS = ["date_debut", "date_fin", "titre", "lien", "details"]
 
 # Un événement du calendrier dont le titre commence par « Lien : », « Info : » ou « Document : » devient une ligne
 # d'information (avec son lien) affichée sur la page téléphone pendant les jours de l'événement. Il n'est pas dans l'agenda.
-INFO_RE = re.compile(r"^\s*(lien|infos?|document|doc)\s*[:\-–]\s*(.+)$", re.I)
+# Le texte après les deux-points est facultatif : un événement intitulé juste « Document » ou « Lien » fonctionne aussi.
+INFO_RE = re.compile(r"^\s*(lien|infos?|document|doc)\s*(?:[:\-–]\s*(.+))?$", re.I)
 
 # Les mots sont cherchés « entiers » : « concours » ne doit pas être pris pour « cours ».
 TYPES = [
@@ -188,7 +189,7 @@ def main():
         if m_info:
             infos.append({
                 "date_debut": d1.isoformat(), "date_fin": d2.isoformat() if d2 else "",
-                "titre": m_info.group(2).strip(),
+                "titre": (m_info.group(2) or m_info.group(1)).strip().capitalize() if not m_info.group(2) else m_info.group(2).strip(),
                 "lien": trouver_lien(as_text(ev.get("description")) + " " + as_text(ev.get("location"))),
                 "details": details,
             })
