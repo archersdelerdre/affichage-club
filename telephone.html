@@ -30,7 +30,12 @@
   body::before { content: none !important; }
   .filigrane { position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background: url("logo-fond.png") center 42% / min(92vw, 75vh) no-repeat; opacity: .12; }
-  header { padding: 18px 16px 6px; }
+  header { padding: 18px 16px 6px; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 14px; }
+  .podiums { text-align: right; }
+  .podiums .med { display: flex; gap: 4px; align-items: center; justify-content: flex-end; }
+  .podiums .tot { margin-left: 8px; font-size: 13px; color: var(--texte-doux); white-space: nowrap; }
+  .podiums .tot b { font-family: var(--titre); font-size: 24px; color: var(--texte); }
+  .podiums small { display: block; margin-top: 2px; font-size: 12px; color: var(--texte-doux); }
   header h1 { margin: 0; font-family: var(--titre); font-weight: 700; font-size: 30px; line-height: 1; }
   header p { margin: 4px 0 0; font-size: 13px; color: var(--texte-doux); }
   .alerte { margin: 10px 16px 0; padding: 12px 14px; background: var(--rouge); color: #fff; border-radius: 10px; font-weight: 600; }
@@ -102,7 +107,7 @@
 </head>
 <body>
 <div class="filigrane" aria-hidden="true"></div>
-<header><h1 id="club"></h1><p id="maj"></p></header>
+<header><div><h1 id="club"></h1><p id="maj"></p></div><div class="podiums" id="podiums" hidden></div></header>
 <div id="alerte"></div>
 <div id="infos"></div>
 <nav><button data-v="agenda" class="actif">Agenda</button><button data-v="resultats">Résultats</button></nav>
@@ -287,7 +292,24 @@ function carte(c, ouverte) {
       <span class="nom">${formatNom(l.nom)}<span class="cat">${esc(l.cat)}, ${esc(NOMS_ARC[l.arc] || "")}</span></span><span class="score">${esc(l.aff || l.sc)}</span></div>`).join("")}</div>
   </details>`;
 }
+/* podiums de la saison en cours (la saison FFTA commence le 1er septembre), toutes disciplines confondues */
+function rendrePodiumsSaison(donnees) {
+  const auj = aujourdhui(), moisDebut = (CFG.SAISON_MOIS || 9) - 1;
+  const an = auj.getMonth() >= moisDebut ? auj.getFullYear() : auj.getFullYear() - 1;
+  const debut = new Date(an, moisDebut, 1);
+  const med = [0, 0, 0];
+  ((donnees && donnees.concours) || []).forEach(c => {
+    const fin = lireDate(c.fin);
+    if (!fin || fin < debut || fin > auj) return;
+    c.groupes.forEach(g => g.lignes.forEach(l => { if (l[1] >= 1 && l[1] <= 3) med[l[1] - 1]++; }));
+  });
+  const total = med[0] + med[1] + med[2];
+  $("podiums").innerHTML = donnees
+    ? `<div class="med" title="1res, 2es et 3es places de la saison">${med.map((k, j) => `<span class="rang r${j + 1} ${k ? "" : "zero"}">${k}</span>`).join("")}<span class="tot"><b>${total}</b> ${total > 1 ? "podiums" : "podium"}</span></div><small>Saison ${an}-${an + 1}</small>`
+    : "";
+}
 function rendreResultats(donnees) {
+  rendrePodiumsSaison(donnees);
   const auj = aujourdhui(), debut = plusJours(auj, -CFG.MAX_JOURS);
   const dedans = ((donnees && donnees.concours) || []).map(c => ({ c, fin: lireDate(c.fin) })).filter(x => x.fin && x.fin >= debut && x.fin <= auj);
   const parWeekend = new Map();
@@ -321,6 +343,7 @@ $("club").textContent = CFG.CLUB_NOM;
 document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => {
   document.querySelectorAll("nav button").forEach(x => x.classList.toggle("actif", x === b));
   $("agenda").hidden = b.dataset.v !== "agenda"; $("resultats").hidden = b.dataset.v !== "resultats";
+  $("podiums").hidden = b.dataset.v !== "resultats";
   window.scrollTo(0, 0);
 }));
 document.addEventListener("visibilitychange", () => { if (!document.hidden) charger(); });
