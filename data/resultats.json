@@ -1,6 +1,102 @@
 {
- "maj": "2026-11-01",
+ "maj": "2026-11-02",
  "concours": [
+  {
+   "nom": "Multidéparts",
+   "format": "Tir à 18m (2X18M)",
+   "dates": "30 octobre au 1 novembre 2026",
+   "fin": "2026-11-01",
+   "totalArchers": 152,
+   "source": "Source : classement officiel FFTA du 1 novembre 2026",
+   "groupes": [
+    {
+     "arc": "classique",
+     "titre": "Senior 1 Femme",
+     "lignes": [
+      [
+       "Clarisse KERLEAU",
+       5,
+       482
+      ],
+      [
+       "Agathe LAGRENADE",
+       6,
+       460
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "Senior 1 Homme",
+     "lignes": [
+      [
+       "Antoine DELAUNAY",
+       20,
+       312
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "Senior 2 Homme",
+     "lignes": [
+      [
+       "Germain FRICOTEAUX",
+       1,
+       580
+      ],
+      [
+       "Stephane FLORENTIN",
+       2,
+       571
+      ],
+      [
+       "Christian FERRAND",
+       3,
+       542
+      ],
+      [
+       "Benjamin DELPHIN",
+       8,
+       527
+      ],
+      [
+       "Vincent MANOUKIAN",
+       16,
+       467
+      ],
+      [
+       "Gregory FOURMEAU",
+       17,
+       466
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "Senior 3 Homme",
+     "lignes": [
+      [
+       "Jacques PERROCHAT",
+       6,
+       488
+      ]
+     ]
+    },
+    {
+     "arc": "poulies",
+     "titre": "Senior 2 Femme",
+     "lignes": [
+      [
+       "Aurélie FERRAND",
+       4,
+       526
+      ]
+     ]
+    }
+   ],
+   "id": "https://extranet.ffta.fr/pdfresultats/2026/S_0437083_20261030_79082.pdf"
+  },
   {
    "nom": "Tir en Salle 18M la Haye Fouassière",
    "format": "Tir à 18m (2X18M)",
