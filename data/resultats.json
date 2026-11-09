@@ -1,6 +1,105 @@
 {
- "maj": "2026-11-08",
+ "maj": "2026-11-09",
  "concours": [
+  {
+   "nom": "Concours Nature",
+   "format": "Tir Nature (21 CIBLES)",
+   "dates": "8 novembre 2026",
+   "fin": "2026-11-08",
+   "totalArchers": 98,
+   "source": "Source : classement officiel FFTA du 8 novembre 2026",
+   "groupes": [
+    {
+     "arc": "droit",
+     "titre": "Senior 2 Homme",
+     "lignes": [
+      [
+       "Nicolas MARTEL",
+       1,
+       515
+      ]
+     ]
+    },
+    {
+     "arc": "autre",
+     "titre": "Senior 2 Femme Arc Chasse",
+     "lignes": [
+      [
+       "Sylvie HENIN",
+       3,
+       235
+      ]
+     ]
+    }
+   ],
+   "id": "https://extranet.ffta.fr/pdfresultats/2026/N_1272093_20261108_79993.pdf"
+  },
+  {
+   "nom": "Concours Salle 18 M",
+   "format": "Tir à 18m (2X18M)",
+   "dates": "7 et 8 novembre 2026",
+   "fin": "2026-11-08",
+   "totalArchers": 128,
+   "source": "Source : classement officiel FFTA du 8 novembre 2026",
+   "groupes": [
+    {
+     "arc": "classique",
+     "titre": "Senior 1 Femme",
+     "lignes": [
+      [
+       "Clarisse KERLEAU",
+       2,
+       510
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "Senior 1 Homme",
+     "lignes": [
+      [
+       "Alexandre CHAIGNE",
+       6,
+       529
+      ]
+     ]
+    },
+    {
+     "arc": "poulies",
+     "titre": "Senior 2 Homme",
+     "lignes": [
+      [
+       "Damien LETULLE",
+       8,
+       519
+      ]
+     ]
+    }
+   ],
+   "id": "https://extranet.ffta.fr/pdfresultats/2026/S_1244024_20261107_79256.pdf"
+  },
+  {
+   "nom": "Clisson-Tas 2027",
+   "format": "Tir à 18m (2X18M)",
+   "dates": "7 et 8 novembre 2026",
+   "fin": "2026-11-08",
+   "totalArchers": 83,
+   "source": "Source : classement officiel FFTA du 8 novembre 2026",
+   "groupes": [
+    {
+     "arc": "classique",
+     "titre": "Senior 3 Homme",
+     "lignes": [
+      [
+       "Jacques PERROCHAT",
+       2,
+       511
+      ]
+     ]
+    }
+   ],
+   "id": "https://extranet.ffta.fr/pdfresultats/2026/S_1244004_20261107_77483.pdf"
+  },
   {
    "nom": "Multidéparts",
    "format": "Tir à 18m (2X18M)",
