@@ -1,6 +1,88 @@
 {
- "maj": "2026-11-15",
+ "maj": "2026-11-16",
  "concours": [
+  {
+   "nom": "Tir en Salle",
+   "format": "Tir à 18m (2X18M)",
+   "dates": "14 et 15 novembre 2026",
+   "fin": "2026-11-15",
+   "totalArchers": 160,
+   "source": "Source : classement officiel FFTA du 15 novembre 2026",
+   "groupes": [
+    {
+     "arc": "classique",
+     "titre": "Senior 1 Homme",
+     "lignes": [
+      [
+       "Jonas ROUSSEL",
+       4,
+       518
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "Senior 3 Homme",
+     "lignes": [
+      [
+       "Jacques PERROCHAT",
+       2,
+       524
+      ],
+      [
+       "Bruno LEMOINE",
+       4,
+       502
+      ]
+     ]
+    },
+    {
+     "arc": "poulies",
+     "titre": "Senior 2 Femme",
+     "lignes": [
+      [
+       "Olympe KONCKI",
+       1,
+       561
+      ]
+     ]
+    },
+    {
+     "arc": "poulies",
+     "titre": "Senior 2 Homme",
+     "lignes": [
+      [
+       "Damien LETULLE",
+       4,
+       551
+      ]
+     ]
+    }
+   ],
+   "id": "https://extranet.ffta.fr/pdfresultats/2026/S_1244041_20261114_78943.pdf"
+  },
+  {
+   "nom": "Concours Salle de Saint Gilles Croix de VIE",
+   "format": "Tir à 18m (2X18M)",
+   "dates": "14 et 15 novembre 2026",
+   "fin": "2026-11-15",
+   "totalArchers": 118,
+   "source": "Source : classement officiel FFTA du 16 novembre 2026",
+   "groupes": [
+    {
+     "arc": "poulies",
+     "titre": "Senior 2 Homme",
+     "lignes": [
+      [
+       "Jean Christian BERNARD",
+       1,
+       570
+      ]
+     ]
+    }
+   ],
+   "id": "https://extranet.ffta.fr/pdfresultats/2026/S_1285117_20261114_78672.pdf"
+  },
   {
    "nom": "Concours Nature",
    "format": "Tir Nature (21 CIBLES)",
