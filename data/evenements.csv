@@ -1,6 +1,4 @@
 date_debut,date_fin,heure,titre,lieu,details,couleur,type
-2026-11-12,,17:30,Cours jeunes débutants - Yohan,,,#3B8BD1,cours
-2026-11-12,,19:00,Cours adultes débutants - Vincent,,,#3B8BD1,cours
 2026-11-13,,10:00,Cours Vinci,,Attention Pas de tir occupé par le cours,#3B8BD1,cours
 2026-11-13,,18:00,Cours compétiteurs - Anëlle Florent,,,#3B8BD1,cours
 2026-11-13,,20:00,Cours adultes débutants - Benjamin,,,#3B8BD1,cours
@@ -354,3 +352,4 @@ date_debut,date_fin,heure,titre,lieu,details,couleur,type
 2027-08-15,,,Pas de tir indisponible,,,#D9442F,indisponible
 2027-11-01,,,Pas de tir indisponible,,,#D9442F,indisponible
 2027-11-11,,,Pas de tir indisponible,,,#D9442F,indisponible
+2027-12-25,,,Pas de tir indisponible,,,#D9442F,indisponible
