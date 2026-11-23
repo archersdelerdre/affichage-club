@@ -1,6 +1,55 @@
 {
- "maj": "2026-11-22",
+ "maj": "2026-11-23",
  "concours": [
+  {
+   "nom": "Concours Salle",
+   "format": "Tir à 18m (2X18M)",
+   "dates": "21 et 22 novembre 2026",
+   "fin": "2026-11-22",
+   "totalArchers": 119,
+   "source": "Source : classement officiel FFTA du 22 novembre 2026",
+   "groupes": [
+    {
+     "arc": "classique",
+     "titre": "Senior 1 Femme",
+     "lignes": [
+      [
+       "Fiona ROHOU",
+       4,
+       482
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "Senior 2 Homme",
+     "lignes": [
+      [
+       "Stephane FLORENTIN",
+       1,
+       574
+      ]
+     ]
+    },
+    {
+     "arc": "classique",
+     "titre": "Senior 3 Homme",
+     "lignes": [
+      [
+       "Jacques PERROCHAT",
+       2,
+       504
+      ],
+      [
+       "Bruno LEMOINE",
+       3,
+       497
+      ]
+     ]
+    }
+   ],
+   "id": "https://extranet.ffta.fr/pdfresultats/2026/S_1244002_20261121_79401.pdf"
+  },
   {
    "nom": "Tir en Salle",
    "format": "Tir à 18m (2X18M)",
